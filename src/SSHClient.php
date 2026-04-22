@@ -8,9 +8,9 @@ class SSHClient
 {
     protected $ssh;
 
-    public function connect($host, $user, $pass)
+    public function connect($host, $user, $pass, $port)
     {
-        $this->ssh = new SSH2($host);
+        $this->ssh = new SSH2($host, $port);
 
         if (!$this->ssh->login($user, $pass)) {
             throw new \Exception("SSH Login Failed");

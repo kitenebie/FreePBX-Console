@@ -25,7 +25,12 @@ require 'vendor/autoload.php';
 use KsipTelnet\SSHClient;
 
 $client = new SSHClient();
+
+// Default port 22
 $client->connect('your-server-ip', 'root', 'your-password');
+
+// Custom port
+$client->connect('your-server-ip', 'root', 'your-password', 2222);
 ```
 
 ### 2. Create a PJSIP Extension
@@ -57,13 +62,15 @@ Instead of hardcoding credentials, use environment variables:
 export SSH_HOST=your-server-ip
 export SSH_USER=root
 export SSH_PASS=your-password
+export SSH_PORT=22
 ```
 
 ```php
 $client->connect(
     getenv('SSH_HOST'),
     getenv('SSH_USER'),
-    getenv('SSH_PASS')
+    getenv('SSH_PASS'),
+    getenv('SSH_PORT') ?: 22
 );
 ```
 
@@ -87,6 +94,7 @@ composer require codego/php-ksip-telnet
 SSH_HOST=your-server-ip
 SSH_USER=root
 SSH_PASS=your-password
+SSH_PORT=22
 SSH_DB_USER=freepbxuser
 SSH_DB_PASS=dbpassword
 ```
@@ -114,7 +122,8 @@ class FreePBXService
         $this->client->connect(
             config('services.freepbx.host'),
             config('services.freepbx.user'),
-            config('services.freepbx.pass')
+            config('services.freepbx.pass'),
+            config('services.freepbx.port', 22)
         );
     }
 
@@ -142,6 +151,7 @@ class FreePBXService
     'host'    => env('SSH_HOST'),
     'user'    => env('SSH_USER'),
     'pass'    => env('SSH_PASS'),
+    'port'    => env('SSH_PORT', 22),
     'db_user' => env('SSH_DB_USER'),
     'db_pass' => env('SSH_DB_PASS'),
 ],
