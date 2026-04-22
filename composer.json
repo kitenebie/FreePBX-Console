@@ -1,12 +1,12 @@
 {
-    "name": "your-vendor/php-ksip-telnet",
+    "name": "codego/php-ksip-telnet",
     "description": "FreePBX extension manager via SSH",
     "type": "library",
     "license": "MIT",
     "authors": [
         {
-            "name": "Your Name",
-            "email": "your@email.com"
+            "name": "Kenneth G.",
+            "email": "kent14328@gmail.com"
         }
     ],
     "require": {
