@@ -1,0 +1,21 @@
+{
+    "name": "your-vendor/php-ksip-telnet",
+    "description": "FreePBX extension manager via SSH",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Your Name",
+            "email": "your@email.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "phpseclib/phpseclib": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "KsipTelnet\\": "src/"
+        }
+    }
+}
