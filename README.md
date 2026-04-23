@@ -36,7 +36,7 @@ $client->connect('your-server-ip', 'root', 'your-password', 2222);
 ### 2. Create a PJSIP Extension
 
 ```php
-$result = $client->createExtension(
+$result = $client->createExtensionKsip(
     '1001',          // extension number
     'secret123',     // extension password
     'freepbxuser',   // MySQL username
@@ -47,7 +47,33 @@ echo $result['sql_output'];
 echo $result['reload_output'];
 ```
 
-### 3. Run a Custom SSH Command
+### 3. Get All Extensions
+
+```php
+$extensions = $client->getExtKsipList('freepbxuser', 'dbpassword');
+// returns: ['1001', '1002', '1003', ...]
+```
+
+### 4. Generate Extension if Not Exists
+
+```php
+$result = $client->genExtKsip(
+    [
+        'extName'  => '1005',
+        'password' => 'secret123'  // optional, defaults to extName
+    ],
+    'freepbxuser',
+    'dbpassword'
+);
+
+// If extension already exists:
+// ['status' => 'exists', 'extension' => '1005', 'message' => 'Extension 1005 already exists']
+
+// If extension was created:
+// ['status' => 'created', 'extension' => '1005', 'result' => [...]]
+```
+
+### 5. Run a Custom SSH Command
 
 ```php
 $output = $client->exec('asterisk -rx "pjsip show endpoints"');
@@ -127,11 +153,28 @@ class FreePBXService
         );
     }
 
-    public function createExtension(string $ext, string $password): array
+    public function createExtensionKsip(string $ext, string $password): array
     {
-        return $this->client->createExtension(
+        return $this->client->createExtensionKsip(
             $ext,
             $password,
+            config('services.freepbx.db_user'),
+            config('services.freepbx.db_pass')
+        );
+    }
+
+    public function getExtKsipList(): array
+    {
+        return $this->client->getExtKsipList(
+            config('services.freepbx.db_user'),
+            config('services.freepbx.db_pass')
+        );
+    }
+
+    public function genExtKsip(array $data): array
+    {
+        return $this->client->genExtKsip(
+            $data,
             config('services.freepbx.db_user'),
             config('services.freepbx.db_pass')
         );
@@ -193,10 +236,27 @@ class ExtensionController extends Controller
             'password'  => 'required|string',
         ]);
 
-        $result = $this->freepbx->createExtension(
+        $result = $this->freepbx->createExtensionKsip(
             $request->extension,
             $request->password
         );
+
+        return response()->json($result);
+    }
+
+    public function index()
+    {
+        return response()->json($this->freepbx->getExtKsipList());
+    }
+
+    public function generate(Request $request)
+    {
+        $request->validate([
+            'extName'  => 'required|numeric',
+            'password' => 'nullable|string',
+        ]);
+
+        $result = $this->freepbx->genExtKsip($request->only('extName', 'password'));
 
         return response()->json($result);
     }
@@ -208,7 +268,9 @@ class ExtensionController extends Controller
 ```php
 use App\Http\Controllers\ExtensionController;
 
+Route::get('/extensions', [ExtensionController::class, 'index']);
 Route::post('/extensions', [ExtensionController::class, 'store']);
+Route::post('/extensions/generate', [ExtensionController::class, 'generate']);
 ```
 
 ### 8. Test via API

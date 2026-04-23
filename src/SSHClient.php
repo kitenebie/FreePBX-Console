@@ -8,7 +8,7 @@ class SSHClient
 {
     protected $ssh;
 
-    public function connect($host, $user, $pass, $port)
+    public function connect($host, $user, $pass, $port = 22)
     {
         $this->ssh = new SSH2($host, $port);
 
@@ -31,13 +31,12 @@ class SSHClient
     /**
      * Create FreePBX Extension via MySQL
      */
-    public function createExtension($ext, $password, $dbUser, $dbPass)
+    public function createExtensionKsip($ext, $password, $dbUser, $dbPass)
     {
         if (!$this->ssh) {
             throw new \Exception("Not connected to SSH");
         }
 
-        // SQL script
         $sql = "
         INSERT INTO users (extension, name, voicemail)
         VALUES ('$ext', '$ext', 'default');
@@ -105,18 +104,65 @@ class SSHClient
         ('$ext','max_contacts','1',0);
         ";
 
-        // Escape quotes for shell
         $sql = str_replace('"', '\"', $sql);
 
-        // Execute SQL + reload in a single channel
         $cmd = "mysql -u $dbUser -p'$dbPass' asterisk -e \"$sql\" 2>&1; echo '---RELOAD---'; fwconsole reload 2>&1";
         $output = $this->ssh->exec($cmd);
 
         $parts = explode('---RELOAD---', $output);
 
         return [
-            'sql_output' => trim($parts[0] ?? ''),
+            'sql_output'    => trim($parts[0] ?? ''),
             'reload_output' => trim($parts[1] ?? '')
+        ];
+    }
+
+    /**
+     * Get all extensions from FreePBX DB
+     */
+    public function getExtKsipList($dbUser, $dbPass)
+    {
+        if (!$this->ssh) {
+            throw new \Exception("Not connected to SSH");
+        }
+
+        $cmd = "mysql -u $dbUser -p'$dbPass' asterisk -se \"SELECT extension FROM users;\" 2>&1";
+        $output = trim($this->ssh->exec($cmd));
+
+        if (empty($output)) {
+            return [];
+        }
+
+        return array_values(array_filter(explode("\n", $output)));
+    }
+
+    /**
+     * Generate extension if extName does not exist in DB
+     */
+    public function genExtKsip(array $data, $dbUser, $dbPass)
+    {
+        if (!isset($data['extName'])) {
+            throw new \Exception("extName is required in data array");
+        }
+
+        $extName  = $data['extName'];
+        $existing = $this->getExtKsipList($dbUser, $dbPass);
+
+        if (in_array($extName, $existing)) {
+            return [
+                'status'    => 'exists',
+                'extension' => $extName,
+                'message'   => "Extension $extName already exists"
+            ];
+        }
+
+        $password = $data['password'] ?? $extName;
+        $result   = $this->createExtensionKsip($extName, $password, $dbUser, $dbPass);
+
+        return [
+            'status'    => 'created',
+            'extension' => $extName,
+            'result'    => $result
         ];
     }
 }
