@@ -280,3 +280,68 @@ curl -X POST http://your-app.com/api/extensions \
   -H "Content-Type: application/json" \
   -d '{"extension": "1001", "password": "secret123"}'
 ```
+
+---
+
+## Artisan Scaffold Generator
+
+The package includes a `make:ksipgen` command that auto-generates call recording scaffold files in your Laravel project.
+
+### What it generates
+
+- `app/Http/Controllers/Api/CallRecordingController.php`
+- `database/migrations/{timestamp}_create_call_recordings_table.php`
+- Appends routes to `routes/api.php`
+
+### Usage
+
+```bash
+php artisan make:ksipgen
+php artisan migrate
+```
+
+### Generated Routes
+
+```php
+Route::prefix('recordings')->group(function () {
+    Route::post('/upload', [CallRecordingController::class, 'upload']);
+    Route::get('/', [CallRecordingController::class, 'index']);
+    Route::get('/{id}', [CallRecordingController::class, 'show']);
+    Route::get('/{id}/download', [CallRecordingController::class, 'download']);
+    Route::delete('/{id}', [CallRecordingController::class, 'delete']);
+});
+```
+
+### Available API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/recordings` | List all recordings |
+| `POST` | `/api/recordings/upload` | Upload a recording (mp3/wav/ogg) |
+| `GET` | `/api/recordings/{id}` | Get a single recording |
+| `GET` | `/api/recordings/{id}/download` | Download a recording |
+| `DELETE` | `/api/recordings/{id}` | Delete a recording |
+
+### Upload Example
+
+```bash
+curl -X POST http://your-app.com/api/recordings/upload \
+  -F "file=@/path/to/recording.wav" \
+  -F "caller=1001" \
+  -F "callee=1002" \
+  -F "duration=60"
+```
+
+### Migration Schema
+
+```php
+Schema::create('call_recordings', function (Blueprint $table) {
+    $table->id();
+    $table->string('filename');
+    $table->string('path');
+    $table->string('caller')->nullable();
+    $table->string('callee')->nullable();
+    $table->integer('duration')->nullable();
+    $table->timestamps();
+});
+```
