@@ -837,8 +837,14 @@ function App() {
     autoRecording: true,  // Start with recording ON
   }}
   settingConfigCodecs={{
-    audio: {{ visible: true, codecs: ["PCMU", "PCMA"] }},  // Only show these 2
-    video: {{ visible: false, codecs: ["VP8", "H264"] }},  // Hide video codecs section
+    audio: {
+        visible: true, 
+        codecs: ["PCMU", "PCMA"] // Only show these 2
+    },  
+    video: {
+        visible: false, 
+        codecs: ["VP8", "H264"] // Hide video codecs section
+    },  
   }}
 /&gt;</code></pre>
 
@@ -898,8 +904,8 @@ function App() {
     autoRecording: true,
   }}
   settingConfigCodecs={{
-    audio: {{ visible: true, codecs: ["PCMU", "PCMA", "opus"] }},
-    video: {{ visible: true, codecs: ["VP8", "H264"] }},
+    audio: { visible: true, codecs: ["PCMU", "PCMA", "opus"] },
+    video: { visible: true, codecs: ["VP8", "H264"] },
   }}
 /&gt;</code></pre>
     </section>
