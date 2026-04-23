@@ -46,9 +46,17 @@ class KSIPGen extends Command
         $this->info("Created: database/migrations/{$timestamp}_create_call_recordings_table.php");
     }
 
+    protected function generateModel()
+    {
+        $filename  = $this->laravel->databasePath("app/Models/CallRecording.php");
+
+        File::put($filename, $this->modelStub());
+        $this->info("Created: app/Models/CallRecording.php");
+    }
+
     protected function appendRoutes()
     {
-        $path   = $this->laravel->basePath('routes/api.php');
+        $path   = $this->laravel->basePath('routes/web.php');
         $routes = $this->routesStub();
 
         if (strpos(File::get($path), 'CallRecordingController') !== false) {
@@ -217,33 +225,71 @@ class CallRecordingController extends Controller
 PHP;
     }
 
+
     protected function migrationStub(): string
     {
         return <<<'PHP'
 <?php
 
-namespace App\Models;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
-use Illuminate\Database\Eloquent\Model;
-
-class CallRecording extends Model
+return new class extends Migration
 {
-    protected $fillable = [
-        'extension',
-        'filename',
-        'file_path',
-        'recording_date',
-        'timestamp',
-        'file_size',
-        'mime_type',
-        'uploaded_successfully',
-    ];
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('call_recordings', function (Blueprint $table) {
+            $table->id();
+            $table->string('filename');
+            $table->string('path');
+            $table->string('caller')->nullable();
+            $table->string('callee')->nullable();
+            $table->integer('duration')->nullable();
+            $table->timestamps();
+        });
+    }
 
-    protected $casts = [
-        'recording_date' => 'date',
-        'uploaded_successfully' => 'boolean',
-    ];
-}
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('call_recordings');
+    }
+};
+
+PHP;
+    }
+    protected function modelStub(): string
+    {
+        return <<<'PHP'
+    <?php
+
+    namespace App\Models;
+
+    use Illuminate\Database\Eloquent\Model;
+    class CallRecording extends Model
+    {
+        protected $fillable = [
+            'extension',
+            'filename',
+            'file_path',
+            'recording_date',
+            'timestamp',
+            'file_size',
+            'mime_type',
+            'uploaded_successfully',
+        ];
+
+        protected $casts = [
+            'recording_date' => 'date',
+            'uploaded_successfully' => 'boolean',
+        ];
+    }
 PHP;
     }
 
@@ -255,7 +301,7 @@ PHP;
 use App\Http\Controllers\Api\CallRecordingController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('recordings')->group(function () {
+Route::prefix('api/recordings')->group(function () {
     Route::post('/upload', [CallRecordingController::class, 'upload']);
     Route::get('/', [CallRecordingController::class, 'index']);
     Route::get('/{id}', [CallRecordingController::class, 'show']);
