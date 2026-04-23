@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>php-ksip-telnet Docs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f1117;
+            color: #e2e8f0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        aside {
+            width: 260px;
+            min-height: 100vh;
+            background: #161b22;
+            border-right: 1px solid #30363d;
+            padding: 24px 0;
+            position: fixed;
+            top: 0; left: 0;
+            overflow-y: auto;
+        }
+
+        aside .logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 16px;
+        }
+
+        aside .logo h1 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #58a6ff;
+        }
+
+        aside .logo span {
+            font-size: 11px;
+            color: #8b949e;
+        }
+
+        aside nav a {
+            display: block;
+            padding: 7px 20px;
+            font-size: 13px;
+            color: #8b949e;
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            transition: all 0.15s;
+        }
+
+        aside nav a:hover, aside nav a.active {
+            color: #58a6ff;
+            border-left-color: #58a6ff;
+            background: #1f2937;
+        }
+
+        aside nav .nav-group {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6e7681;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 14px 20px 4px;
+        }
+
+        /* Main content */
+        main {
+            margin-left: 260px;
+            flex: 1;
+            padding: 48px 60px;
+            max-width: 900px;
+        }
+
+        section {
+            margin-bottom: 56px;
+            scroll-margin-top: 24px;
+        }
+
+        h1 { font-size: 28px; font-weight: 700; color: #f0f6fc; margin-bottom: 8px; }
+        h2 { font-size: 20px; font-weight: 600; color: #f0f6fc; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #30363d; }
+        h3 { font-size: 15px; font-weight: 600; color: #e2e8f0; margin: 24px 0 10px; }
+
+        p { font-size: 14px; color: #8b949e; line-height: 1.7; margin-bottom: 12px; }
+
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: #1f6feb33;
+            color: #58a6ff;
+            border: 1px solid #1f6feb66;
+            margin-right: 6px;
+            margin-bottom: 12px;
+        }
+
+        pre {
+            margin: 12px 0 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #30363d;
+            font-size: 13px;
+        }
+
+        pre code { padding: 16px !important; }
+
+        code:not(pre code) {
+            background: #1f2937;
+            color: #79c0ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        ul, ol { padding-left: 20px; margin-bottom: 12px; }
+        li { font-size: 14px; color: #8b949e; line-height: 1.8; }
+        li code { font-size: 12px; }
+
+        .step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .step-num {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            background: #1f6feb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 2px;
+        }
+
+        .step-body { flex: 1; }
+        .step-body h3 { margin-top: 0; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background: #161b22;
+            color: #8b949e;
+            font-weight: 600;
+            text-align: left;
+            padding: 10px 14px;
+            border: 1px solid #30363d;
+        }
+
+        td {
+            padding: 10px 14px;
+            border: 1px solid #30363d;
+            color: #e2e8f0;
+        }
+
+        td:first-child code {
+            background: #1f6feb22;
+            color: #58a6ff;
+        }
+
+        tr:nth-child(even) td { background: #161b22; }
+
+        .method-get  { background: #1a7f3722; color: #3fb950; border: 1px solid #1a7f3744; }
+        .method-post { background: #1f6feb22; color: #58a6ff; border: 1px solid #1f6feb44; }
+        .method-del  { background: #da363322; color: #f85149; border: 1px solid #da363344; }
+
+        .method-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .alert {
+            background: #1f2937;
+            border-left: 3px solid #58a6ff;
+            padding: 12px 16px;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #8b949e;
+        }
+    </style>
+</head>
+<body>
+
+<aside>
+    <div class="logo">
+        <h1>php-ksip-telnet</h1>
+        <span>FreePBX SSH Library</span>
+    </div>
+    <nav>
+        <div class="nav-group">Getting Started</div>
+        <a href="#requirements">Requirements</a>
+        <a href="#installation">Installation</a>
+
+        <div class="nav-group">Usage</div>
+        <a href="#connect">Connect to SSH</a>
+        <a href="#create-extension">Create Extension</a>
+        <a href="#get-extensions">Get Extensions</a>
+        <a href="#gen-extension">Generate Extension</a>
+        <a href="#exec">Custom SSH Command</a>
+        <a href="#env">Environment Variables</a>
+
+        <div class="nav-group">Laravel</div>
+        <a href="#laravel-install">Installation</a>
+        <a href="#laravel-env">Environment</a>
+        <a href="#laravel-service">Service Class</a>
+        <a href="#laravel-config">Config</a>
+        <a href="#laravel-provider">Service Provider</a>
+        <a href="#laravel-controller">Controller</a>
+        <a href="#laravel-routes">Routes</a>
+        <a href="#laravel-api">Test API</a>
+
+        <div class="nav-group">Artisan</div>
+        <a href="#ksipgen">make:ksipgen</a>
+        <a href="#endpoints">API Endpoints</a>
+
+        <div class="nav-group">Other</div>
+        <a href="#license">License</a>
+    </nav>
+</aside>
+
+<main>
+
+    <!-- Header -->
+    <section id="intro">
+        <h1>php-ksip-telnet</h1>
+        <p>A PHP library for managing FreePBX/Asterisk PJSIP extensions remotely via SSH.</p>
+        <div>
+            <span class="badge">PHP >= 7.4</span>
+            <span class="badge">MIT License</span>
+            <span class="badge">Composer</span>
+            <span class="badge">Laravel Ready</span>
+        </div>
+    </section>
+
+    <!-- Requirements -->
+    <section id="requirements">
+        <h2>Requirements</h2>
+        <ul>
+            <li>PHP >= 7.4</li>
+            <li>Composer</li>
+            <li>FreePBX / Asterisk server with SSH access</li>
+        </ul>
+    </section>
+
+    <!-- Installation -->
+    <section id="installation">
+        <h2>Installation</h2>
+        <pre><code class="language-bash">composer require codego/php-ksip-telnet</code></pre>
+    </section>
+
+    <!-- Usage -->
+    <section id="connect">
+        <h2>Usage</h2>
+        <h3>1. Connect to SSH</h3>
+        <pre><code class="language-php">&lt;?php
+
+require 'vendor/autoload.php';
+
+use KsipTelnet\SSHClient;
+
+$client = new SSHClient();
+
+// Default port 22
+$client->connect('your-server-ip', 'root', 'your-password');
+
+// Custom port
+$client->connect('your-server-ip', 'root', 'your-password', 2222);</code></pre>
+    </section>
+
+    <section id="create-extension">
+        <h3>2. Create a PJSIP Extension</h3>
+        <pre><code class="language-php">$result = $client->createExtensionKsip(
+    '1001',          // extension number
+    'secret123',     // extension password
+    'freepbxuser',   // MySQL username
+    'dbpassword'     // MySQL password
+);
+
+echo $result['sql_output'];
+echo $result['reload_output'];</code></pre>
+    </section>
+
+    <section id="get-extensions">
+        <h3>3. Get All Extensions</h3>
+        <pre><code class="language-php">$extensions = $client->getExtKsipList('freepbxuser', 'dbpassword');
+// returns: ['1001', '1002', '1003', ...]</code></pre>
+    </section>
+
+    <section id="gen-extension">
+        <h3>4. Generate Extension if Not Exists</h3>
+        <pre><code class="language-php">$result = $client->genExtKsip(
+    [
+        'extName'  => '1005',
+        'password' => 'secret123'  // optional, defaults to extName
+    ],
+    'freepbxuser',
+    'dbpassword'
+);
+
+// If extension already exists:
+// ['status' => 'exists', 'extension' => '1005', 'message' => 'Extension 1005 already exists']
+
+// If extension was created:
+// ['status' => 'created', 'extension' => '1005', 'result' => [...]]</code></pre>
+    </section>
+
+    <section id="exec">
+        <h3>5. Run a Custom SSH Command</h3>
+        <pre><code class="language-php">$output = $client->exec('asterisk -rx "pjsip show endpoints"');
+echo $output;</code></pre>
+    </section>
+
+    <section id="env">
+        <h2>Environment Variables (Recommended)</h2>
+        <p>Instead of hardcoding credentials, use environment variables:</p>
+        <pre><code class="language-bash">export SSH_HOST=your-server-ip
+export SSH_USER=root
+export SSH_PASS=your-password
+export SSH_PORT=22</code></pre>
+        <pre><code class="language-php">$client->connect(
+    getenv('SSH_HOST'),
+    getenv('SSH_USER'),
+    getenv('SSH_PASS'),
+    getenv('SSH_PORT') ?: 22
+);</code></pre>
+    </section>
+
+    <!-- Laravel -->
+    <section id="laravel-install">
+        <h2>Laravel Integration</h2>
+
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+                <h3>Install the package</h3>
+                <pre><code class="language-bash">composer require codego/php-ksip-telnet</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-env">
+            <div class="step-num">2</div>
+            <div class="step-body">
+                <h3>Add credentials to <code>.env</code></h3>
+                <pre><code class="language-bash">SSH_HOST=your-server-ip
+SSH_USER=root
+SSH_PASS=your-password
+SSH_PORT=22
+SSH_DB_USER=freepbxuser
+SSH_DB_PASS=dbpassword</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-service">
+            <div class="step-num">3</div>
+            <div class="step-body">
+                <h3>Create a Service class</h3>
+                <pre><code class="language-bash">php artisan make:service FreePBXService</code></pre>
+                <pre><code class="language-php">&lt;?php
+
+namespace App\Services;
+
+use KsipTelnet\SSHClient;
+
+class FreePBXService
+{
+    protected SSHClient $client;
+
+    public function __construct()
+    {
+        $this->client = new SSHClient();
+        $this->client->connect(
+            config('services.freepbx.host'),
+            config('services.freepbx.user'),
+            config('services.freepbx.pass'),
+            config('services.freepbx.port', 22)
+        );
+    }
+
+    public function createExtensionKsip(string $ext, string $password): array
+    {
+        return $this->client->createExtensionKsip(
+            $ext, $password,
+            config('services.freepbx.db_user'),
+            config('services.freepbx.db_pass')
+        );
+    }
+
+    public function getExtKsipList(): array
+    {
+        return $this->client->getExtKsipList(
+            config('services.freepbx.db_user'),
+            config('services.freepbx.db_pass')
+        );
+    }
+
+    public function genExtKsip(array $data): array
+    {
+        return $this->client->genExtKsip(
+            $data,
+            config('services.freepbx.db_user'),
+            config('services.freepbx.db_pass')
+        );
+    }
+
+    public function exec(string $command): string
+    {
+        return $this->client->exec($command);
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-config">
+            <div class="step-num">4</div>
+            <div class="step-body">
+                <h3>Register in <code>config/services.php</code></h3>
+                <pre><code class="language-php">'freepbx' => [
+    'host'    => env('SSH_HOST'),
+    'user'    => env('SSH_USER'),
+    'pass'    => env('SSH_PASS'),
+    'port'    => env('SSH_PORT', 22),
+    'db_user' => env('SSH_DB_USER'),
+    'db_pass' => env('SSH_DB_PASS'),
+],</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-provider">
+            <div class="step-num">5</div>
+            <div class="step-body">
+                <h3>Bind in <code>AppServiceProvider</code></h3>
+                <pre><code class="language-php">use App\Services\FreePBXService;
+
+public function register(): void
+{
+    $this->app->singleton(FreePBXService::class);
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-controller">
+            <div class="step-num">6</div>
+            <div class="step-body">
+                <h3>Use in a Controller</h3>
+                <pre><code class="language-bash">php artisan make:controller ExtensionController</code></pre>
+                <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers;
+
+use App\Services\FreePBXService;
+use Illuminate\Http\Request;
+
+class ExtensionController extends Controller
+{
+    public function __construct(protected FreePBXService $freepbx) {}
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'extension' => 'required|numeric',
+            'password'  => 'required|string',
+        ]);
+
+        return response()->json(
+            $this->freepbx->createExtensionKsip($request->extension, $request->password)
+        );
+    }
+
+    public function index()
+    {
+        return response()->json($this->freepbx->getExtKsipList());
+    }
+
+    public function generate(Request $request)
+    {
+        $request->validate([
+            'extName'  => 'required|numeric',
+            'password' => 'nullable|string',
+        ]);
+
+        return response()->json(
+            $this->freepbx->genExtKsip($request->only('extName', 'password'))
+        );
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-routes">
+            <div class="step-num">7</div>
+            <div class="step-body">
+                <h3>Add routes in <code>routes/api.php</code></h3>
+                <pre><code class="language-php">use App\Http\Controllers\ExtensionController;
+
+Route::get('/extensions', [ExtensionController::class, 'index']);
+Route::post('/extensions', [ExtensionController::class, 'store']);
+Route::post('/extensions/generate', [ExtensionController::class, 'generate']);</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-api">
+            <div class="step-num">8</div>
+            <div class="step-body">
+                <h3>Test via API</h3>
+                <pre><code class="language-bash">curl -X POST http://your-app.com/api/extensions \
+  -H "Content-Type: application/json" \
+  -d '{"extension": "1001", "password": "secret123"}'</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Artisan -->
+    <section id="ksipgen">
+        <h2>Artisan Scaffold Generator</h2>
+        <p>The package includes a <code>make:ksipgen</code> command that auto-generates call recording scaffold files in your Laravel project.</p>
+
+        <h3>What it generates</h3>
+        <ul>
+            <li><code>app/Http/Controllers/Api/CallRecordingController.php</code></li>
+            <li><code>database/migrations/{timestamp}_create_call_recordings_table.php</code></li>
+            <li>Appends routes to <code>routes/api.php</code></li>
+        </ul>
+
+        <h3>Usage</h3>
+        <pre><code class="language-bash">php artisan make:ksipgen
+php artisan migrate</code></pre>
+
+        <h3>Generated Routes</h3>
+        <pre><code class="language-php">Route::prefix('recordings')->group(function () {
+    Route::post('/upload', [CallRecordingController::class, 'upload']);
+    Route::get('/', [CallRecordingController::class, 'index']);
+    Route::get('/{id}', [CallRecordingController::class, 'show']);
+    Route::get('/{id}/download', [CallRecordingController::class, 'download']);
+    Route::delete('/{id}', [CallRecordingController::class, 'delete']);
+});</code></pre>
+
+        <h3>Upload Example</h3>
+        <pre><code class="language-bash">curl -X POST http://your-app.com/api/recordings/upload \
+  -F "file=@/path/to/recording.wav" \
+  -F "caller=1001" \
+  -F "callee=1002" \
+  -F "duration=60"</code></pre>
+
+        <h3>Migration Schema</h3>
+        <pre><code class="language-php">Schema::create('call_recordings', function (Blueprint $table) {
+    $table->id();
+    $table->string('filename');
+    $table->string('path');
+    $table->string('caller')->nullable();
+    $table->string('callee')->nullable();
+    $table->integer('duration')->nullable();
+    $table->timestamps();
+});</code></pre>
+    </section>
+
+    <!-- Endpoints -->
+    <section id="endpoints">
+        <h2>Available API Endpoints</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="method-badge method-get">GET</span></td>
+                    <td><code>/api/recordings</code></td>
+                    <td>List all recordings</td>
+                </tr>
+                <tr>
+                    <td><span class="method-badge method-post">POST</span></td>
+                    <td><code>/api/recordings/upload</code></td>
+                    <td>Upload a recording (mp3/wav/ogg)</td>
+                </tr>
+                <tr>
+                    <td><span class="method-badge method-get">GET</span></td>
+                    <td><code>/api/recordings/{id}</code></td>
+                    <td>Get a single recording</td>
+                </tr>
+                <tr>
+                    <td><span class="method-badge method-get">GET</span></td>
+                    <td><code>/api/recordings/{id}/download</code></td>
+                    <td>Download a recording</td>
+                </tr>
+                <tr>
+                    <td><span class="method-badge method-del">DELETE</span></td>
+                    <td><code>/api/recordings/{id}</code></td>
+                    <td>Delete a recording</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- License -->
+    <section id="license">
+        <h2>License</h2>
+        <p>This package is open-sourced software licensed under the <strong>MIT license</strong>.</p>
+    </section>
+
+</main>
+
+<script>
+    // Active nav highlight on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('aside nav a');
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(s => {
+            if (window.scrollY >= s.offsetTop - 60) current = s.id;
+        });
+        navLinks.forEach(a => {
+            a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+        });
+    });
+</script>
+
+</body>
+</html>
