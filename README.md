@@ -3,7 +3,7 @@
 A PHP library for managing FreePBX/Asterisk PJSIP extensions remotely via SSH.
 
 ## WEB DOCUMENTATION
-**Visit Documentation:** [php-ksip-telnet Documentation](https://kitenebie.github.io/FreePBX-Console/)
+**Visit Documentation:** [php-ksip-telnet & juv-ksip-softphone Documentation](https://kitenebie.github.io/FreePBX-Console/)
 
 ## Requirements
 

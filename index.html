@@ -22,13 +22,20 @@
         aside {
             width: 260px;
             min-height: 100vh;
+            height: 100vh;
             background: #161b22;
             border-right: 1px solid #30363d;
             padding: 24px 0;
             position: fixed;
             top: 0; left: 0;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #30363d transparent;
         }
+
+        aside::-webkit-scrollbar { width: 4px; }
+        aside::-webkit-scrollbar-track { background: transparent; }
+        aside::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
 
         aside .logo {
             padding: 0 20px 20px;
@@ -200,6 +207,13 @@
             font-size: 13px;
             color: #8b949e;
         }
+        .language-bash{
+            color: #32fc00;
+            font-size: 16px;
+        }
+        .language-bash2{
+            color: #5df8e9;
+        }
     </style>
 </head>
 <body>
@@ -238,6 +252,20 @@
 
         <div class="nav-group">Other</div>
         <a href="#license">License</a>
+
+        <div class="nav-group" style="color:#3fb950">juv-ksip-softphone</div>
+        <a href="#sp-intro">Overview</a>
+        <a href="#sp-install">Installation</a>
+        <a href="#sp-quickstart">Quick Start</a>
+        <a href="#sp-props">Props</a>
+        <a href="#sp-examples">Examples</a>
+        <a href="#sp-ksipcall">ksipcall API</a>
+        <a href="#sp-settings">Settings Panel</a>
+        <a href="#sp-cdn">CDN Usage</a>
+        <a href="#sp-websocket">WebSocket Protocol</a>
+        <a href="#sp-freepbx">FreePBX Requirements</a>
+        <a href="#sp-recording">Auto Recording</a>
+        <a href="#sp-localstorage">localStorage</a>
     </nav>
 </aside>
 
@@ -336,7 +364,7 @@ echo $output;</code></pre>
     <section id="env">
         <h2>Environment Variables (Recommended)</h2>
         <p>Instead of hardcoding credentials, use environment variables:</p>
-        <pre><code class="language-bash">export SSH_HOST=your-server-ip
+        <pre><code class="language-bash2">export SSH_HOST=your-server-ip
 export SSH_USER=root
 export SSH_PASS=your-password
 export SSH_PORT=22</code></pre>
@@ -364,7 +392,7 @@ export SSH_PORT=22</code></pre>
             <div class="step-num">2</div>
             <div class="step-body">
                 <h3>Add credentials to <code>.env</code></h3>
-                <pre><code class="language-bash">SSH_HOST=your-server-ip
+                <pre><code class="language-bash2">SSH_HOST=your-server-ip
 SSH_USER=root
 SSH_PASS=your-password
 SSH_PORT=22
@@ -525,7 +553,7 @@ Route::post('/extensions/generate', [ExtensionController::class, 'generate']);</
             <div class="step-num">8</div>
             <div class="step-body">
                 <h3>Test via API</h3>
-                <pre><code class="language-bash">curl -X POST http://your-app.com/api/extensions \
+                <pre><code class="language-bash2">curl -X POST http://your-app.com/api/extensions \
   -H "Content-Type: application/json" \
   -d '{"extension": "1001", "password": "secret123"}'</code></pre>
             </div>
@@ -535,8 +563,11 @@ Route::post('/extensions/generate', [ExtensionController::class, 'generate']);</
     <!-- Artisan -->
     <section id="ksipgen">
         <h2>Artisan Scaffold Generator</h2>
-        <p>The package includes a <code>make:ksipgen</code> command that auto-generates call recording scaffold files in your Laravel project.</p>
+        <p>The package includes a <code>make:ksipgen</code> command that auto-generates call recording scaffold files in your Laravel project connects to <b style="color: #3fec4b;">KSIP (juv-ksip-softphone)</b> just install reacr ksip <code>juv-ksip-softphone</code>.</p>
 
+        <h3>Install React KSIP</h3>
+        <pre><code class="language-bash">npm i juv-ksip-softphone@latest</code></pre>
+        
         <h3>What it generates</h3>
         <ul>
             <li><code>app/Http/Controllers/Api/CallRecordingController.php</code></li>
@@ -558,7 +589,7 @@ php artisan migrate</code></pre>
 });</code></pre>
 
         <h3>Upload Example</h3>
-        <pre><code class="language-bash">curl -X POST http://your-app.com/api/recordings/upload \
+        <pre><code class="language-bash2">curl -X POST http://your-app.com/api/recordings/upload \
   -F "file=@/path/to/recording.wav" \
   -F "caller=1001" \
   -F "callee=1002" \
@@ -621,6 +652,303 @@ php artisan migrate</code></pre>
     <section id="license">
         <h2>License</h2>
         <p>This package is open-sourced software licensed under the <strong>MIT license</strong>.</p>
+    </section>
+
+    <!-- ========== juv-ksip-softphone ========== -->
+    <section id="sp-intro">
+        <h1 style="margin-top:40px">juv-ksip-softphone</h1>
+        <p>A professional, draggable, resizable, transparent React WebRTC SIP softphone component for FreePBX / Asterisk. Supports audio and video calls, incoming call handling, codec selection, and a global <code>ksipcall</code> API for triggering calls from anywhere in your app.</p>
+        <div>
+            <span class="badge" style="background:#1a7f3722;border-color:#1a7f3744;color:#3fb950">React</span>
+            <span class="badge" style="background:#1a7f3722;border-color:#1a7f3744;color:#3fb950">WebRTC</span>
+            <span class="badge" style="background:#1a7f3722;border-color:#1a7f3744;color:#3fb950">SIP</span>
+            <span class="badge">MIT License</span>
+            <span class="badge">npm</span>
+        </div>
+        <h3>How does it work?</h3>
+        <p>The component connects to your FreePBX/Asterisk server via WebSocket SIP (<code>ws://</code> port <code>8088</code> or <code>wss://</code> port <code>8089</code>). Once registered, WebRTC handles audio/video streams natively in the browser — no plugins needed.</p>
+        <pre><code class="language-bash">Browser  ──WebSocket──▶  FreePBX/Asterisk  ──SIP──▶  Other Phone
+           (SIP/WS)           (PBX)
+Browser  ◀──WebRTC──▶   FreePBX/Asterisk  ◀──RTP──▶  Other Phone
+           (Audio/Video)      (Media)</code></pre>
+
+        <h3>Screenshots</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+            <img src="https://raw.githubusercontent.com/kitenebie/SoftPhone-FreePBX/main/src/assets/image_1.png" style="width:48%;border-radius:8px;border:1px solid #30363d" alt="Settings Panel" />
+            <img src="https://raw.githubusercontent.com/kitenebie/SoftPhone-FreePBX/main/src/assets/image_2.png" style="width:48%;border-radius:8px;border:1px solid #30363d" alt="Incoming Call" />
+            <img src="https://raw.githubusercontent.com/kitenebie/SoftPhone-FreePBX/main/src/assets/image_3.png" style="width:48%;border-radius:8px;border:1px solid #30363d" alt="Video Call" />
+            <img src="https://raw.githubusercontent.com/kitenebie/SoftPhone-FreePBX/main/src/assets/image_4.png" style="width:48%;border-radius:8px;border:1px solid #30363d" alt="Dialer" />
+            <img src="https://raw.githubusercontent.com/kitenebie/SoftPhone-FreePBX/main/src/assets/image_5.png" style="width:48%;border-radius:8px;border:1px solid #30363d" alt="Fullscreen" />
+        </div>
+
+        <h3>Features</h3>
+        <ul>
+            <li>🎙 Audio &amp; video calls via WebRTC + SIP (FreePBX / Asterisk)</li>
+            <li>📞 Incoming call notifications with accept/reject</li>
+            <li>🪟 Draggable + resizable floating video panel (expandable to fullscreen)</li>
+            <li>🔢 Draggable dialpad panel</li>
+            <li>💾 Auto-saves config to <code>localStorage</code> and auto-connects on reload</li>
+            <li>🔄 Auto-reconnects on WebSocket disconnect</li>
+            <li>🌐 Transparent background — overlays any existing app</li>
+            <li>📡 Global <code>ksipcall</code> API — trigger calls from plain JS or any framework</li>
+            <li>🔒 ws:// / wss:// protocol selector</li>
+            <li>🎚 Audio &amp; video codec selection</li>
+            <li>🔔 Ringtones for incoming and end call</li>
+        </ul>
+    </section>
+
+    <section id="sp-install">
+        <h2>Installation</h2>
+        <pre><code class="language-bash">npm install juv-ksip-softphone</code></pre>
+    </section>
+
+    <section id="sp-quickstart">
+        <h2>Quick Start</h2>
+        <pre><code class="language-jsx">import { Softphone } from 'juv-ksip-softphone';
+import 'juv-ksip-softphone/styles';
+
+function App() {
+  return (
+    &lt;&gt;
+      &lt;YourExistingApp /&gt;
+      &lt;Softphone /&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+        <p>The softphone renders as a transparent overlay with a floating phone button (top-right). Click it to open the nav menu.</p>
+    </section>
+
+    <section id="sp-props">
+        <h2>Props</h2>
+        <h3>SIP Connection Props</h3>
+        <table>
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>server</code></td><td>string</td><td><code>""</code></td><td>FreePBX server IP or hostname</td></tr>
+                <tr><td><code>wsProtocol</code></td><td>ws | wss</td><td><code>"ws"</code></td><td>WebSocket protocol</td></tr>
+                <tr><td><code>wsPort</code></td><td>string</td><td><code>"8088"</code></td><td>WebSocket port</td></tr>
+                <tr><td><code>extension</code></td><td>string</td><td><code>""</code></td><td>SIP extension number</td></tr>
+                <tr><td><code>password</code></td><td>string</td><td><code>""</code></td><td>SIP extension password</td></tr>
+                <tr><td><code>displayName</code></td><td>string</td><td><code>""</code></td><td>Caller ID display name</td></tr>
+            </tbody>
+        </table>
+        <h3>Recording Props</h3>
+        <table>
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>autoRecord</code></td><td>boolean</td><td><code>false</code></td><td>Enable automatic recording of all calls</td></tr>
+                <tr><td><code>recordingDir</code></td><td>string</td><td><code>"video/recordings/Ksip"</code></td><td>Directory path for saved recordings</td></tr>
+                <tr><td><code>uploadApiUrl</code></td><td>string</td><td><code>""</code></td><td>API endpoint URL for uploading recordings</td></tr>
+            </tbody>
+        </table>
+        <h3>UI Props</h3>
+        <table>
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>enabledBubble</code></td><td>boolean</td><td><code>true</code></td><td>Show or hide the entire softphone bubble</td></tr>
+                <tr><td><code>showDialer</code></td><td>boolean</td><td><code>true</code></td><td>Show the dialer button in the FAB nav</td></tr>
+                <tr><td><code>showSetting</code></td><td>boolean</td><td><code>true</code></td><td>Show the settings button in the FAB nav</td></tr>
+                <tr><td><code>showOpacity</code></td><td>boolean</td><td><code>true</code></td><td>Show the opacity button in the FAB nav</td></tr>
+                <tr><td><code>answerwithVideoCall</code></td><td>boolean</td><td><code>false</code></td><td>Auto-answer incoming calls with video</td></tr>
+                <tr><td><code>ShowIncomingCallVideoBtn</code></td><td>boolean</td><td><code>true</code></td><td>Show the video answer button on incoming calls</td></tr>
+                <tr><td><code>ShowIncomingCallAudio</code></td><td>boolean</td><td><code>true</code></td><td>Show the audio answer button on incoming calls</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section id="sp-examples">
+        <h2>Examples</h2>
+        <h3>Basic — manual config via settings panel</h3>
+        <pre><code class="language-jsx">&lt;Softphone /&gt;</code></pre>
+
+        <h3>Pre-configured — auto-connect on load</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  server="192.168.1.100"
+  wsProtocol="ws"
+  wsPort="8088"
+  extension="1001"
+  password="mypassword"
+  displayName="John Doe"
+/&gt;</code></pre>
+
+        <h3>Full configuration</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  server="192.168.1.100"
+  wsProtocol="ws"
+  wsPort="8088"
+  extension="1001"
+  password="mypassword"
+  displayName="John Doe"
+  enabledBubble={true}
+  showDialer={true}
+  showSetting={true}
+  showOpacity={true}
+  answerwithVideoCall={false}
+  ShowIncomingCallVideoBtn={true}
+  ShowIncomingCallAudio={true}
+/&gt;</code></pre>
+
+        <h3>Audio-only mode</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  ShowIncomingCallVideoBtn={false}
+  ShowIncomingCallAudio={true}
+/&gt;</code></pre>
+
+        <h3>wss:// for HTTPS pages</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  server="pbx.yourdomain.com"
+  wsProtocol="wss"
+  wsPort="8089"
+  extension="1001"
+  password="mypassword"
+/&gt;</code></pre>
+    </section>
+
+    <section id="sp-ksipcall">
+        <h2>ksipcall API</h2>
+        <p>The <code>ksipcall</code> global lets you trigger calls from anywhere — plain JavaScript, Vue, Angular, or any other framework.</p>
+
+        <h3>Audio Call</h3>
+        <pre><code class="language-js">ksipcall.audio("123");</code></pre>
+
+        <h3>Video Call</h3>
+        <pre><code class="language-js">ksipcall.video("123");</code></pre>
+
+        <h3>Via window (plain HTML)</h3>
+        <pre><code class="language-html">&lt;button onclick="ksipcall.audio('123')"&gt;Call Support&lt;/button&gt;
+&lt;button onclick="ksipcall.video('456')"&gt;Video Call&lt;/button&gt;</code></pre>
+
+        <h3>Import in React</h3>
+        <pre><code class="language-js">import { ksipcall } from 'juv-ksip-softphone';
+
+ksipcall.audio("123");
+ksipcall.video("123");</code></pre>
+    </section>
+
+    <section id="sp-settings">
+        <h2>Settings Panel</h2>
+        <p>The in-app settings panel (accessible via the ⚙ button) has a 3-column layout.</p>
+        <h3>Column 1 — SIP Configuration</h3>
+        <table>
+            <thead><tr><th>Field</th><th>Description</th><th>Example</th></tr></thead>
+            <tbody>
+                <tr><td>FreePBX Server IP</td><td>IP or hostname</td><td><code>192.168.1.100</code></td></tr>
+                <tr><td>Extension</td><td>SIP extension number</td><td><code>1001</code></td></tr>
+                <tr><td>Password</td><td>Extension SIP password</td><td><code>mypassword</code></td></tr>
+                <tr><td>Display Name</td><td>Caller ID name (optional)</td><td><code>John Doe</code></td></tr>
+                <tr><td>Protocol</td><td>ws:// or wss://</td><td><code>ws://</code></td></tr>
+                <tr><td>Port</td><td>WebSocket port</td><td><code>8088</code></td></tr>
+            </tbody>
+        </table>
+        <h3>Column 2 — Codecs</h3>
+        <p><strong>Audio:</strong> PCMU, PCMA, G722, G729, opus</p>
+        <p><strong>Video:</strong> VP8, VP9, H264, H265, AV1</p>
+        <h3>Column 3 — UI Preferences</h3>
+        <ul>
+            <li>Show Bubble</li>
+            <li>Show Dialer Button</li>
+            <li>Show Settings Button</li>
+            <li>Show Opacity Button</li>
+            <li>Answer with Video</li>
+            <li>Show Video Answer Button</li>
+            <li>Show Audio Answer Button</li>
+        </ul>
+    </section>
+
+    <section id="sp-cdn">
+        <h2>CDN Usage (Browser)</h2>
+        <p>Use directly in the browser via CDN — no build tools required.</p>
+        <h3>1. Include scripts</h3>
+        <pre><code class="language-html">&lt;!-- Styles --&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/juv-ksip-softphone@1.0.35/dist/juv-ksip-softphone.css"&gt;
+
+&lt;!-- Softphone bundle --&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/juv-ksip-softphone@1.0.35/dist/juv-ksip-softphone.cdn.js"&gt;&lt;/script&gt;</code></pre>
+
+        <h3>2. Mount the softphone</h3>
+        <pre><code class="language-html">&lt;div id="softphone"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  const { Softphone, createRoot, createElement } = window.JuvKsipSoftphone;
+  createRoot(document.getElementById('softphone')).render(
+    createElement(Softphone, {
+      server: "192.168.1.100",
+      wsProtocol: "ws",
+      wsPort: "8088",
+      extension: "1001",
+      password: "mypassword",
+      displayName: "John Doe"
+    })
+  );
+&lt;/script&gt;</code></pre>
+
+        <h3>3. Trigger calls via ksipcall (CDN)</h3>
+        <pre><code class="language-html">&lt;button onclick="window.ksipcall.audio('1002')"&gt;Audio Call&lt;/button&gt;
+&lt;button onclick="window.ksipcall.video('1002')"&gt;Video Call&lt;/button&gt;</code></pre>
+    </section>
+
+    <section id="sp-websocket">
+        <h2>WebSocket Protocol</h2>
+        <table>
+            <thead><tr><th>Protocol</th><th>Port</th><th>Use Case</th></tr></thead>
+            <tbody>
+                <tr><td><code>ws://</code></td><td><code>8088</code></td><td>Local network, HTTP pages</td></tr>
+                <tr><td><code>wss://</code></td><td><code>8089</code></td><td>Production, HTTPS pages (requires SSL cert on FreePBX)</td></tr>
+            </tbody>
+        </table>
+        <div class="alert">Browsers block <code>ws://</code> when the page is served over <code>https://</code>. Use <code>wss://</code> with a valid SSL certificate for production.</div>
+    </section>
+
+    <section id="sp-freepbx">
+        <h2>FreePBX / Asterisk Requirements</h2>
+        <p>For WebRTC to work, each SIP extension must have these settings:</p>
+        <table>
+            <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+            <tbody>
+                <tr><td><code>webrtc</code></td><td>yes</td></tr>
+                <tr><td><code>use_avpf</code></td><td>yes</td></tr>
+                <tr><td><code>media_encryption</code></td><td>dtls</td></tr>
+                <tr><td><code>ice_support</code></td><td>yes</td></tr>
+                <tr><td><code>bundle</code></td><td>yes</td></tr>
+                <tr><td><code>rtcp_mux</code></td><td>yes</td></tr>
+                <tr><td><code>dtls_setup</code></td><td>actpass</td></tr>
+            </tbody>
+        </table>
+        <h3>Enable via CLI</h3>
+        <pre><code class="language-ini">[1001](+)
+webrtc=yes</code></pre>
+        <pre><code class="language-bash">asterisk -rx "pjsip reload"</code></pre>
+    </section>
+
+    <section id="sp-recording">
+        <h2>Auto Recording</h2>
+        <p>The softphone supports automatic recording of audio and video calls with configurable save directory.</p>
+        <ul>
+            <li>✅ Auto-record toggle in settings panel</li>
+            <li>✅ Configurable recording directory</li>
+            <li>✅ Saves as WebM format</li>
+            <li>✅ Automatic download after call ends</li>
+            <li>✅ Filename format: <code>{ISO-timestamp}.webm</code></li>
+        </ul>
+        <h3>Basic Usage</h3>
+        <pre><code class="language-jsx">&lt;Softphone autoRecord={true} /&gt;</code></pre>
+        <h3>Custom Directory</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  autoRecord={true}
+  recordingDir="video/recordings/Ksip"
+/&gt;</code></pre>
+        <h3>Convert to MP3</h3>
+        <pre><code class="language-bash">ffmpeg -i recording.webm -vn -ar 44100 -ac 2 -b:a 192k output.mp3</code></pre>
+    </section>
+
+    <section id="sp-localstorage">
+        <h2>localStorage</h2>
+        <p>Config is automatically saved under the key <code>sip_softphone_config</code> and restored on next page load, including SIP credentials, WebSocket settings, codecs, and UI preferences.</p>
+        <div class="alert"><code>enabledBubble</code> and <code>showSetting</code> are <strong>never saved</strong> to localStorage — they are always controlled by props.</div>
+        <pre><code class="language-json">{
+  "autoRecord": true,
+  "recordingDir": "video/recordings/Ksip"
+}</code></pre>
     </section>
 
 </main>
