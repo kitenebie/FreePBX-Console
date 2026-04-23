@@ -811,6 +811,97 @@ function App() {
   extension="1001"
   password="mypassword"
 /&gt;</code></pre>
+
+        <h3>Settings Configuration</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  settingConfigToggles={{
+    bubble: true,
+    dialer: true,
+    settings: false,  // Hide settings toggle
+    opacity: true,
+    autoAnswerVideo: true,
+    answerButtonVideo: false,  // Hide video answer button toggle
+    answerButtonAudio: true,
+    fullscreen: true,
+    autoRecording: true,
+  }}
+  settingConfigTogglesActiveState={{
+    bubble: true,
+    dialer: true,
+    settings: true,
+    opacity: true,
+    autoAnswerVideo: true,  // Start with auto-answer video ON
+    answerButtonVideo: true,
+    answerButtonAudio: false,
+    fullscreen: false,
+    autoRecording: true,  // Start with recording ON
+  }}
+  settingConfigCodecs={{
+    audio: {{ visible: true, codecs: ["PCMU", "PCMA"] }},  // Only show these 2
+    video: {{ visible: false, codecs: ["VP8", "H264"] }},  // Hide video codecs section
+  }}
+/&gt;</code></pre>
+
+        <h3>Auto Recording with API Upload</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  autoRecord={true}
+  recordingDir="video/recordings/Ksip"
+  uploadApiUrl="https://your-domain.com/api/recordings/upload"
+/&gt;</code></pre>
+
+        <h3>Complete Example with All Features</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  // SIP Connection
+  server="192.168.1.100"
+  wsProtocol="ws"
+  wsPort="8088"
+  extension="1001"
+  password="mypassword"
+  displayName="John Doe"
+  
+  // UI Controls
+  enabledBubble={true}
+  showDialer={true}
+  showSetting={true}
+  showOpacity={true}
+  answerwithVideoCall={false}
+  ShowIncomingCallVideoBtn={true}
+  ShowIncomingCallAudio={true}
+  fullscreen={false}
+  
+  // Recording
+  autoRecord={true}
+  recordingDir="video/recordings/Ksip"
+  uploadApiUrl="https://your-domain.com/api/recordings/upload"
+  
+  // Settings Configuration
+  settingConfigToggles={{
+    bubble: true,
+    dialer: true,
+    settings: true,
+    opacity: true,
+    autoAnswerVideo: true,
+    answerButtonVideo: true,
+    answerButtonAudio: true,
+    fullscreen: true,
+    autoRecording: true,
+  }}
+  settingConfigTogglesActiveState={{
+    bubble: true,
+    dialer: true,
+    settings: true,
+    opacity: true,
+    autoAnswerVideo: false,
+    answerButtonVideo: true,
+    answerButtonAudio: true,
+    fullscreen: false,
+    autoRecording: true,
+  }}
+  settingConfigCodecs={{
+    audio: {{ visible: true, codecs: ["PCMU", "PCMA", "opus"] }},
+    video: {{ visible: true, codecs: ["VP8", "H264"] }},
+  }}
+/&gt;</code></pre>
     </section>
 
     <section id="sp-ksipcall">
@@ -931,12 +1022,13 @@ webrtc=yes</code></pre>
 
     <section id="sp-recording">
         <h2>Auto Recording</h2>
-        <p>The softphone supports automatic recording of audio and video calls with configurable save directory.</p>
+        <p>The softphone supports automatic recording of audio and video calls with configurable save directory and API upload.</p>
         <ul>
             <li>✅ Auto-record toggle in settings panel</li>
             <li>✅ Configurable recording directory</li>
             <li>✅ Saves as WebM format</li>
             <li>✅ Automatic download after call ends</li>
+            <li>✅ Optional API upload with duplicate prevention</li>
             <li>✅ Filename format: <code>{ISO-timestamp}.webm</code></li>
         </ul>
         <h3>Basic Usage</h3>
@@ -946,17 +1038,36 @@ webrtc=yes</code></pre>
   autoRecord={true}
   recordingDir="video/recordings/Ksip"
 /&gt;</code></pre>
+        <h3>With API Upload</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  autoRecord={true}
+  recordingDir="video/recordings/Ksip"
+  uploadApiUrl="https://your-domain.com/api/recordings/upload"
+/&gt;</code></pre>
+        <h3>How It Works</h3>
+        <ol>
+            <li>When auto-record is enabled, a modal prompts user to select a directory</li>
+            <li>Browser's File System Access API creates <code>video/recordings/Ksip/</code> folder structure</li>
+            <li>Recordings save directly to selected folder without download prompts</li>
+            <li>If API URL is configured, uploads to server (once per day to prevent duplicates)</li>
+            <li>Browser remembers directory permission for future recordings</li>
+        </ol>
         <h3>Convert to MP3</h3>
         <pre><code class="language-bash">ffmpeg -i recording.webm -vn -ar 44100 -ac 2 -b:a 192k output.mp3</code></pre>
     </section>
 
     <section id="sp-localstorage">
         <h2>localStorage</h2>
-        <p>Config is automatically saved under the key <code>sip_softphone_config</code> and restored on next page load, including SIP credentials, WebSocket settings, codecs, and UI preferences.</p>
+        <p>Config is automatically saved under the key <code>sip_softphone_config</code> and restored on next page load, including SIP credentials, WebSocket settings, codecs, recording settings, and UI preferences.</p>
         <div class="alert"><code>enabledBubble</code> and <code>showSetting</code> are <strong>never saved</strong> to localStorage — they are always controlled by props.</div>
         <pre><code class="language-json">{
+  "server": "192.168.1.100",
+  "extension": "1001",
   "autoRecord": true,
-  "recordingDir": "video/recordings/Ksip"
+  "recordingDir": "video/recordings/Ksip",
+  "uploadApiUrl": "https://api.example.com/upload",
+  "fullscreen": false,
+  "hasDirectoryAccess": true
 }</code></pre>
     </section>
 
