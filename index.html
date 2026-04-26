@@ -694,6 +694,8 @@ Browser  ◀──WebRTC──▶   FreePBX/Asterisk  ◀──RTP──▶  Oth
             <li>🔒 ws:// / wss:// protocol selector</li>
             <li>🎚 Audio &amp; video codec selection</li>
             <li>🔔 Ringtones for incoming and end call</li>
+            <li>⏱ Status toast notification with real-time connection state</li>
+            <li>⌨️ Keyboard shortcut (Ctrl+Shift+K) to toggle settings</li>
         </ul>
     </section>
 
@@ -1063,16 +1065,71 @@ webrtc=yes</code></pre>
     <section id="sp-localstorage">
         <h2>localStorage</h2>
         <p>Config is automatically saved under the key <code>sip_softphone_config</code> and restored on next page load, including SIP credentials, WebSocket settings, codecs, recording settings, and UI preferences.</p>
-        <div class="alert"><code>enabledBubble</code> and <code>showSetting</code> are <strong>never saved</strong> to localStorage — they are always controlled by props.</div>
+        <div class="alert"><code>showSetting</code> is <strong>never saved</strong> to localStorage — it is always controlled by props.</div>
         <pre><code class="language-json">{
   "server": "192.168.1.100",
   "extension": "1001",
+  "password": "mypassword",
+  "displayName": "John Doe",
+  "wsProtocol": "ws",
+  "wsPort": "8088",
+  "audioCodecs": ["PCMU", "PCMA"],
+  "videoCodecs": ["VP8", "H264"],
+  "enabledBubble": true,
+  "showDialer": true,
+  "showOpacity": true,
+  "answerwithVideoCall": false,
+  "ShowIncomingCallVideoBtn": true,
+  "ShowIncomingCallAudio": true,
+  "fullscreen": false,
   "autoRecord": true,
   "recordingDir": "video/recordings/Ksip",
   "uploadApiUrl": "https://api.example.com/upload",
-  "fullscreen": false,
   "hasDirectoryAccess": true
 }</code></pre>
+
+        <h3>Status Toast Notification</h3>
+        <p>A floating status indicator appears at the top-center of the screen showing the current connection state:</p>
+        <table>
+            <thead><tr><th>Status</th><th>Color</th><th>Behavior</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Connected</strong></td><td>🟢 Green</td><td>Auto-hides after 5 seconds</td></tr>
+                <tr><td><strong>Reconnecting</strong></td><td>🟡 Yellow</td><td>Stays visible until connected</td></tr>
+                <tr><td><strong>Not Connected</strong></td><td>🔴 Red</td><td>Stays visible until connected</td></tr>
+            </tbody>
+        </table>
+        <ul>
+            <li>The status toast includes a settings icon button for quick access to the settings panel</li>
+            <li>Automatically appears when the app loads</li>
+            <li>Shows real-time connection status updates</li>
+            <li>Always visible even when bubble is hidden (can be accessed via <code>Ctrl + Shift + K</code>)</li>
+        </ul>
+
+        <h3>Connection Monitoring</h3>
+        <p>The softphone includes robust connection monitoring to detect server failures:</p>
+        <ul>
+            <li><strong>Automatic Re-registration:</strong> SIP registration refreshes every 10 minutes to maintain active connection</li>
+            <li><strong>Disconnect Detection:</strong> Immediately detects when WebSocket connection is lost</li>
+            <li><strong>Auto-reconnect:</strong> Attempts to reconnect every 3 seconds when connection is lost</li>
+            <li><strong>Unexpected Unregistration:</strong> Automatically attempts to re-register if server rejects registration</li>
+            <li><strong>Long-running Sessions:</strong> Maintains connection health even after hours of being connected without page reload</li>
+        </ul>
+        <div class="alert">
+            <strong>Example Scenario:</strong><br>
+            • App connected at 9:00 AM<br>
+            • Server goes down at 9:30 AM (30 minutes later)<br>
+            • Status toast immediately shows "Reconnecting..." (yellow)<br>
+            • Auto-retry every 3 seconds<br>
+            • When server comes back online → auto-reconnects → "Connected" (green)
+        </div>
+
+        <h3>Keyboard Shortcuts</h3>
+        <table>
+            <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
+            <tbody>
+                <tr><td><code>Ctrl + Shift + K</code></td><td>Toggle settings panel</td></tr>
+            </tbody>
+        </table>
     </section>
 
 </main>
