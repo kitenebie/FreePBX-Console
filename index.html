@@ -247,6 +247,7 @@
         <a href="#laravel-api">Test API</a>
 
         <div class="nav-group">Artisan</div>
+        <a href="#ksip-register-user">make:ksip-register-user</a>
         <a href="#ksipgen">make:ksipgen</a>
         <a href="#endpoints">API Endpoints</a>
 
@@ -558,6 +559,144 @@ Route::post('/extensions/generate', [ExtensionController::class, 'generate']);</
   -d '{"extension": "1001", "password": "secret123"}'</code></pre>
             </div>
         </div>
+    </section>
+
+    <!-- ksipRegisterUser -->
+    <section id="ksip-register-user">
+        <h2>Auto Extension Registration</h2>
+        <p>Automatically generates a unique 12-digit extension number from a user's name acronym + birthdate, then registers it in FreePBX. Can run as a cron job <em>or</em> be called directly from a controller.</p>
+
+        <h3>Extension Number Formula</h3>
+        <p>Each initial letter is converted to its alphabet position (A=01 … Z=26, zero-padded to 2 digits), then the birthdate is appended as <code>mmddyy</code>. If the total is less than 12 digits, random digits fill the remainder.</p>
+
+        <table>
+            <thead><tr><th>Part</th><th>Example</th><th>Result</th></tr></thead>
+            <tbody>
+                <tr><td>Last name initial — L (12th letter)</td><td>Luna</td><td><code>12</code></td></tr>
+                <tr><td>First name initial — J (10th letter)</td><td>Juan</td><td><code>10</code></td></tr>
+                <tr><td>Middle name initial — M (13th letter)</td><td>Mercado</td><td><code>13</code></td></tr>
+                <tr><td>Birthdate (mmddyy)</td><td>12/16/1996</td><td><code>121696</code></td></tr>
+                <tr><td><strong>Final Extension</strong></td><td></td><td><code><strong>121013121696</strong></code></td></tr>
+            </tbody>
+        </table>
+
+        <div class="alert">If the generated number is shorter than 12 digits (e.g. short names), random digits are appended automatically until it reaches exactly 12 digits.</div>
+
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+                <h3>Scaffold the cron job</h3>
+                <pre><code class="language-bash">php artisan make:ksip-register-user</code></pre>
+                <p>Generates <code>app/Console/Commands/AssignExtensionToUsers.php</code> and appends the schedule entry to <code>routes/console.php</code>.</p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+                <h3>Add to <code>.env</code></h3>
+                <pre><code class="language-bash2">SSH_HOST=your-server-ip
+SSH_USER=root
+SSH_PASS=your-password
+SSH_PORT=22
+SSH_DB_USER=freepbxuser
+SSH_DB_PASS=dbpassword</code></pre>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+                <h3>Run the scheduler</h3>
+                <pre><code class="language-bash"># Run once manually
+php artisan ksip:assign-extensions
+
+# Or let the scheduler handle it every minute
+php artisan schedule:run</code></pre>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+                <h3>Call directly from a Registration Controller</h3>
+                <p>Use <code>SSHClient::ksipRegisterUser()</code> to assign an extension immediately on user registration — no need to wait for the cron job.</p>
+                <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use KsipTelnet\SSHClient;
+
+class RegisterController extends Controller
+{
+    public function register(Request $request)
+    {
+        $request->validate([
+            'first_name'  => 'required|string',
+            'last_name'   => 'required|string',
+            'middle_name' => 'nullable|string',
+            'birth_date'  => 'required|date',
+            'email'       => 'required|email|unique:users',
+            'password'    => 'required|min:8|confirmed',
+        ]);
+
+        $user = User::create([
+            'first_name'  => $request->first_name,
+            'last_name'   => $request->last_name,
+            'middle_name' => $request->middle_name,
+            'birth_date'  => $request->birth_date,
+            'email'       => $request->email,
+            'password'    => bcrypt($request->password),
+        ]);
+
+        $ssh = new SSHClient();
+        $ssh->connect(
+            config('services.freepbx.host'),
+            config('services.freepbx.user'),
+            config('services.freepbx.pass'),
+            config('services.freepbx.port', 22)
+        );
+
+        $result = SSHClient::ksipRegisterUser(
+            $user,
+            $ssh,
+            config('services.freepbx.db_user'),
+            config('services.freepbx.db_pass')
+        );
+
+        return response()->json([
+            'user'      => $user,
+            'extension' => $result['extension'],
+            'status'    => $result['status'],
+        ], 201);
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <h3>Generate Extension Number Only (no SSH)</h3>
+        <pre><code class="language-php">use KsipTelnet\SSHClient;
+
+$ext = SSHClient::generateExtensionFromUser(
+    'Luna',      // last_name
+    'Juan',      // first_name
+    'Mercado',   // middle_name
+    '12/16/1996' // birth_date
+);
+
+// $ext → '121013121696'</code></pre>
+
+        <h3>Return Values of <code>ksipRegisterUser</code></h3>
+        <table>
+            <thead><tr><th>status</th><th>Meaning</th></tr></thead>
+            <tbody>
+                <tr><td><code>assigned</code></td><td>Extension generated and registered in FreePBX</td></tr>
+                <tr><td><code>skipped</code></td><td>User already has an <code>extensionName</code></td></tr>
+                <tr><td><code>error</code></td><td>Missing name or birthdate fields</td></tr>
+            </tbody>
+        </table>
     </section>
 
     <!-- Artisan -->

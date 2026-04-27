@@ -11,6 +11,7 @@ class KSIPServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 KSIPGen::class,
+                KSIPRegisterUser::class,
             ]);
         }
     }

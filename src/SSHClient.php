@@ -29,6 +29,92 @@ class SSHClient
     }
 
     /**
+     * Generate a numeric extension from user's name acronym + birthdate.
+     *
+     * Formula: acronym of (last_name, first_name, middle_name) first letters
+     *          each letter → position number (A=01, B=02 … Z=26, padded to 2 digits)
+     *          + birth_date digits only (mmddyy)
+     *
+     * Example: Luna Juan Mercado, 12/16/1996
+     *   Acronym: L(12) J(10) M(13) → 121013
+     *   Birthdate: 121696
+     *   Extension: 121013121696
+     */
+    public static function generateExtensionFromUser($lastName, $firstName, $middleName, $birthDate): string
+    {
+        $initials = [
+            strtoupper(substr(trim($lastName),   0, 1)),
+            strtoupper(substr(trim($firstName),  0, 1)),
+            strtoupper(substr(trim($middleName), 0, 1)),
+        ];
+
+        $acronymNum = '';
+        foreach ($initials as $letter) {
+            if ($letter === '') continue;
+            $pos = ord($letter) - ord('A') + 1; // A=1 … Z=26
+            $acronymNum .= str_pad($pos, 2, '0', STR_PAD_LEFT);
+        }
+
+        // Keep only digits from birthdate (handles any separator)
+        $dateDigits = preg_replace('/\D/', '', $birthDate); // e.g. 12161996
+        // Use mmddyy (6 digits)
+        if (strlen($dateDigits) === 8) {
+            // yyyymmdd or mmddyyyy — detect by checking if first 4 look like a year
+            if ((int)substr($dateDigits, 0, 4) > 1900) {
+                // yyyymmdd → mmddyy
+                $dateDigits = substr($dateDigits, 4, 2) . substr($dateDigits, 6, 2) . substr($dateDigits, 2, 2);
+            } else {
+                // mmddyyyy → mmddyy
+                $dateDigits = substr($dateDigits, 0, 4) . substr($dateDigits, 6, 2);
+            }
+        }
+
+        $ext = $acronymNum . $dateDigits;
+
+        // Pad with random digits until exactly 12 digits
+        while (strlen($ext) < 12) {
+            $ext .= random_int(0, 9);
+        }
+
+        return $ext;
+    }
+
+    /**
+     * Assign a FreePBX extension to a single user.
+     * Can be called from a cron job OR directly from a controller.
+     *
+     * @param  object      $user     Eloquent User model instance
+     * @param  SSHClient   $ssh      Already-connected SSHClient instance
+     * @param  string      $dbUser   MySQL username
+     * @param  string      $dbPass   MySQL password
+     * @return array       ['status' => 'assigned'|'skipped'|'error', 'extension' => ..., 'message' => ...]
+     */
+    public static function ksipRegisterUser($user, SSHClient $ssh, string $dbUser, string $dbPass): array
+    {
+        if (!empty($user->extensionName)) {
+            return ['status' => 'skipped', 'extension' => $user->extensionName, 'message' => 'Already has extension'];
+        }
+
+        $ext = self::generateExtensionFromUser(
+            $user->last_name   ?? '',
+            $user->first_name  ?? '',
+            $user->middle_name ?? '',
+            $user->birth_date  ?? ''
+        );
+
+        if (empty($ext)) {
+            return ['status' => 'error', 'extension' => null, 'message' => 'Could not generate extension: missing name/birthdate'];
+        }
+
+        $result = $ssh->createExtensionKsip($ext, $ext, $ext, $dbUser, $dbPass);
+
+        $user->extensionName = $ext;
+        $user->save();
+
+        return ['status' => 'assigned', 'extension' => $ext, 'result' => $result];
+    }
+
+    /**
      * Create FreePBX Extension via MySQL
      */
     public function createExtensionKsip($ext, $extName, $password, $dbUser, $dbPass)

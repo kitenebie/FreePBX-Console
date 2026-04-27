@@ -286,6 +286,161 @@ curl -X POST http://your-app.com/api/extensions \
 
 ---
 
+## Auto Extension Registration (ksipRegisterUser)
+
+Automatically generates a 12-digit extension number from a user's name acronym + birthdate, then registers it in FreePBX.
+
+### Extension Number Formula
+
+| Part | Example | Result |
+|------|---------|--------|
+| Last name initial (L = 12th letter) | Luna | `12` |
+| First name initial (J = 10th letter) | Juan | `10` |
+| Middle name initial (M = 13th letter) | Mercado | `13` |
+| Birthdate (mmddyy) | 12/16/1996 | `121696` |
+| **Final Extension** | | **`121013121696`** |
+
+If the result is less than 12 digits, random digits are appended to complete it.
+
+### 1. Scaffold the cron job
+
+```bash
+php artisan make:ksip-register-user
+```
+
+This generates:
+- `app/Console/Commands/AssignExtensionToUsers.php`
+- Appends schedule entry to `routes/console.php` (Laravel 11+)
+
+### 2. Add to `.env`
+
+```env
+SSH_HOST=your-server-ip
+SSH_USER=root
+SSH_PASS=your-password
+SSH_PORT=22
+SSH_DB_USER=freepbxuser
+SSH_DB_PASS=dbpassword
+```
+
+### 3. Run the scheduler
+
+```bash
+# Run once manually
+php artisan ksip:assign-extensions
+
+# Or let the scheduler run it every minute
+php artisan schedule:run
+```
+
+### 4. Call directly from a Registration Controller
+
+```php
+use KsipTelnet\SSHClient;
+
+// After saving the user in your register() method:
+$ssh = new SSHClient();
+$ssh->connect(
+    config('services.freepbx.host'),
+    config('services.freepbx.user'),
+    config('services.freepbx.pass'),
+    config('services.freepbx.port', 22)
+);
+
+$result = SSHClient::ksipRegisterUser(
+    $user,
+    $ssh,
+    config('services.freepbx.db_user'),
+    config('services.freepbx.db_pass')
+);
+
+// $result['status']    → 'assigned' | 'skipped' | 'error'
+// $result['extension'] → '121013121696'
+```
+
+### Full Registration Controller Example
+
+```php
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use KsipTelnet\SSHClient;
+
+class RegisterController extends Controller
+{
+    public function register(Request $request)
+    {
+        $request->validate([
+            'first_name'  => 'required|string',
+            'last_name'   => 'required|string',
+            'middle_name' => 'nullable|string',
+            'birth_date'  => 'required|date',
+            'email'       => 'required|email|unique:users',
+            'password'    => 'required|min:8|confirmed',
+        ]);
+
+        $user = User::create([
+            'first_name'  => $request->first_name,
+            'last_name'   => $request->last_name,
+            'middle_name' => $request->middle_name,
+            'birth_date'  => $request->birth_date,
+            'email'       => $request->email,
+            'password'    => bcrypt($request->password),
+        ]);
+
+        // Assign FreePBX extension immediately on registration
+        $ssh = new SSHClient();
+        $ssh->connect(
+            config('services.freepbx.host'),
+            config('services.freepbx.user'),
+            config('services.freepbx.pass'),
+            config('services.freepbx.port', 22)
+        );
+
+        $result = SSHClient::ksipRegisterUser(
+            $user,
+            $ssh,
+            config('services.freepbx.db_user'),
+            config('services.freepbx.db_pass')
+        );
+
+        return response()->json([
+            'user'      => $user,
+            'extension' => $result['extension'],
+            'status'    => $result['status'],
+        ], 201);
+    }
+}
+```
+
+### Generate Extension Number Only (no SSH)
+
+```php
+use KsipTelnet\SSHClient;
+
+$ext = SSHClient::generateExtensionFromUser(
+    'Luna',     // last_name
+    'Juan',     // first_name
+    'Mercado',  // middle_name
+    '12/16/1996' // birth_date
+);
+
+// $ext → '121013121696'
+```
+
+### Return Values of `ksipRegisterUser`
+
+| status | Meaning |
+|--------|---------|
+| `assigned` | Extension generated and saved to FreePBX |
+| `skipped` | User already has an `extensionName` |
+| `error` | Missing name or birthdate fields |
+
+---
+
 ## Artisan Scaffold Generator
 
 The package includes a `make:ksipgen` command that auto-generates call recording scaffold files in your Laravel project.
