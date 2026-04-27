@@ -248,6 +248,7 @@
 
         <div class="nav-group">Artisan</div>
         <a href="#ksip-register-user">make:ksip-register-user</a>
+        <a href="#supervisor">Production Supervisor</a>
         <a href="#ksipgen">make:ksipgen</a>
         <a href="#endpoints">API Endpoints</a>
 
@@ -613,6 +614,40 @@ php artisan ksip:assign-extensions
 
 # Or let the scheduler handle it every minute
 php artisan schedule:run</code></pre>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num" style="background:#1a7f37">&#9881;</div>
+            <div class="step-body">
+                <h3>Production: Auto-run via Supervisor</h3>
+                <p>In production, use <strong>Supervisor</strong> to keep the scheduler running automatically — no need to manually trigger it every minute.</p>
+
+                <h3>1. Install Supervisor</h3>
+                <pre><code class="language-bash">sudo apt install supervisor</code></pre>
+
+                <h3>2. Create config file</h3>
+                <pre><code class="language-bash">sudo nano /etc/supervisor/conf.d/laravel-scheduler.conf</code></pre>
+                <pre><code class="language-bash2">[program:laravel-scheduler]
+process_name=%(program_name)s
+command=bash -c "while true; do php /var/www/your-project/artisan schedule:run; sleep 60; done"
+autostart=true
+autorestart=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/www/your-project/storage/logs/scheduler.log</code></pre>
+
+                <div class="alert">Replace <code>/var/www/your-project</code> with your actual project path and <code>www-data</code> with your server user (e.g. <code>ubuntu</code>, <code>forge</code>, <code>deployer</code>).</div>
+
+                <h3>3. Start Supervisor</h3>
+                <pre><code class="language-bash">sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start laravel-scheduler</code></pre>
+
+                <h3>4. Check status</h3>
+                <pre><code class="language-bash">sudo supervisorctl status laravel-scheduler</code></pre>
+
+                <p>Supervisor will automatically restart the scheduler if the server reboots or the process crashes. Logs are written to <code>storage/logs/scheduler.log</code>.</p>
             </div>
         </div>
 

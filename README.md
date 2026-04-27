@@ -333,6 +333,45 @@ php artisan ksip:assign-extensions
 php artisan schedule:run
 ```
 
+### Production: Auto-run via Supervisor
+
+In production, use **Supervisor** to keep the scheduler running automatically — no need to manually trigger it.
+
+**Install Supervisor:**
+```bash
+sudo apt install supervisor
+```
+
+**Create config file:**
+```bash
+sudo nano /etc/supervisor/conf.d/laravel-scheduler.conf
+```
+
+```ini
+[program:laravel-scheduler]
+process_name=%(program_name)s
+command=bash -c "while true; do php /var/www/your-project/artisan schedule:run; sleep 60; done"
+autostart=true
+autorestart=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/www/your-project/storage/logs/scheduler.log
+```
+
+**Start Supervisor:**
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start laravel-scheduler
+```
+
+**Check status:**
+```bash
+sudo supervisorctl status laravel-scheduler
+```
+
+> Replace `/var/www/your-project` with your actual project path and `www-data` with your server user (e.g. `ubuntu`, `forge`, `deployer`).
+
 ### 4. Call directly from a Registration Controller
 
 ```php
