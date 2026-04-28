@@ -91,25 +91,13 @@ class SSHClient
      */
     public static function ksipRegisterUser($user, SSHClient $ssh, string $dbUser, string $dbPass): array
     {
-        if (!empty($user->extensionName)) {
-            return ['status' => 'skipped', 'extension' => $user->extensionName, 'message' => 'Already has extension'];
+        if (empty($user->mobile_number)) {
+            return ['status' => 'error', 'extension' => null, 'message' => 'Could not assign extension: missing mobile number'];
         }
 
-        $ext = self::generateExtensionFromUser(
-            $user->last_name   ?? '',
-            $user->first_name  ?? '',
-            $user->middle_name ?? '',
-            $user->birth_date  ?? ''
-        );
-
-        if (empty($ext)) {
-            return ['status' => 'error', 'extension' => null, 'message' => 'Could not generate extension: missing name/birthdate'];
-        }
+        $ext = $user->mobile_number;
 
         $result = $ssh->createExtensionKsip($ext, $ext, $ext, $dbUser, $dbPass);
-
-        $user->extensionName = $ext;
-        $user->save();
 
         return ['status' => 'assigned', 'extension' => $ext, 'result' => $result];
     }
