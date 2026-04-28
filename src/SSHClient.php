@@ -227,8 +227,7 @@ class SSHClient
         }
 
         return [
-            'sql_output'    => implode("\n", $sqlOutputs),
-            'reload_output' => trim($reloadOutput)
+            'sql_output'    => implode("\n", $sqlOutputs)
         ];
     }
 }

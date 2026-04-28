@@ -129,7 +129,7 @@ class AssignExtensionToUsers extends Command
             }
         }
         $this->info('Reloading FreePBX...');
-        $ssh->exec('fwconsole reload 2>&1');
+        $ssh->exec('nohup fwconsole reload > /tmp/fwconsole_reload.log 2>&1 & echo "Reload started"');
         $this->info('Done.');
     }
 }
