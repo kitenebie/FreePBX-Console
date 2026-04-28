@@ -25,7 +25,9 @@ class SSHClient
             throw new \Exception("Not connected to SSH");
         }
 
-        return $this->ssh->exec($command);
+        $result = $this->ssh->exec($command);
+        $this->ssh->reset(); // ← idagdag
+        return $result;
     }
 
     /**

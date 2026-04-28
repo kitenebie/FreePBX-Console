@@ -121,6 +121,7 @@ class AssignExtensionToUsers extends Command
                 \App\Models\UserSipAccount::create([
                     'user_id'   => $user->id,
                     'extension' => $result['extension'],
+                    'extension_password' => $result['extension'],
                 ]);
                 $this->info("Assigned extension {$result['extension']} to user ID {$user->id}");
             } else {
