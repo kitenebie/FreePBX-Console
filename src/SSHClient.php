@@ -226,9 +226,6 @@ class SSHClient
             $sqlOutputs[] = "DTLS Config: " . trim($appendOutput);
         }
 
-        // 9. Reload FreePBX
-        $reloadOutput = $this->ssh->exec('fwconsole reload 2>&1');
-
         return [
             'sql_output'    => implode("\n", $sqlOutputs),
             'reload_output' => trim($reloadOutput)

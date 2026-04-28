@@ -128,6 +128,9 @@ class AssignExtensionToUsers extends Command
                 $this->warn("User ID {$user->id}: " . ($result['message'] ?? $result['status']));
             }
         }
+        $this->info('Reloading FreePBX...');
+        $ssh->exec('fwconsole reload 2>&1');
+        $this->info('Done.');
     }
 }
 PHP;
