@@ -93,10 +93,9 @@ class AssignExtensionToUsers extends Command
 
     public function handle()
     {
-        $users = \App\Models\User::where(function ($q) {
-                $q->whereNull('extensionName')->orWhere('extensionName', '');
-            })
-            ->get();
+        $usersWithExtension = \App\Models\UserSipAccount::pluck('user_id');
+
+        $users = \App\Models\User::whereNotIn('id', $usersWithExtension)->get();
 
         if ($users->isEmpty()) {
             $this->info('No users need extension assignment.');
@@ -114,10 +113,15 @@ class AssignExtensionToUsers extends Command
         $dbUser = config('services.freepbx.db_user');
         $dbPass = config('services.freepbx.db_pass');
 
-        foreach ($users as $user) {
+        foreach ($users as $user) 
+        {
             $result = SSHClient::ksipRegisterUser($user, $ssh, $dbUser, $dbPass);
 
             if ($result['status'] === 'assigned') {
+                \App\Models\UserSipAccount::create([
+                    'user_id'   => $user->id,
+                    'extension' => $result['extension'],
+                ]);
                 $this->info("Assigned extension {$result['extension']} to user ID {$user->id}");
             } else {
                 $this->warn("User ID {$user->id}: " . ($result['message'] ?? $result['status']));
