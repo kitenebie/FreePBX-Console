@@ -59,6 +59,7 @@ function methodSignature(object $core, string $method): string
 function normalizeDeviceSettings(string $extension, string $tech, string $name, string $password, array $settings): array
 {
     $base = [
+        'account' => $extension,
         'devicetype' => 'fixed',
         'user' => $extension,
         'description' => $name,
@@ -67,6 +68,7 @@ function normalizeDeviceSettings(string $extension, string $tech, string $name, 
         'dial' => 'PJSIP/' . $extension,
         'defaultuser' => $extension,
         'secret' => $password,
+        'callerid' => '"' . $name . '" <' . $extension . '>',
         'dtmfmode' => 'rfc4733',
         'disallow' => 'all',
         'allow' => 'ulaw,alaw',
