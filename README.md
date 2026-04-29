@@ -2,6 +2,29 @@
 
 A PHP library for managing FreePBX/Asterisk PJSIP extensions remotely via SSH.
 
+## FreePBX-Safe Extension Creation
+
+Direct SQL inserts into `users`, `devices`, `sip`, or the generic `pjsip` table can produce half-created extensions that appear in dialplan but are not fully managed FreePBX endpoints.
+
+This library now expects extension creation to happen through a PBX-side PHP script that bootstraps FreePBX and uses its Core module methods. A starter script is included at [stubs/create_freepbx_extension.php](/Users/kylleluiscabus/FreePBX-Console/stubs/create_freepbx_extension.php).
+
+### Deployment steps
+
+1. Copy the stub to your FreePBX host:
+
+```bash
+scp stubs/create_freepbx_extension.php root@your-pbx:/var/lib/asterisk/bin/create_freepbx_extension.php
+ssh root@your-pbx "chmod 755 /var/lib/asterisk/bin/create_freepbx_extension.php"
+```
+
+2. Verify that the script can load `/etc/freepbx.conf` on the PBX host.
+3. Call `SSHClient::createExtensionKsip()` as usual. It now invokes the PBX-side script instead of raw SQL inserts.
+4. Reload FreePBX after successful creation.
+
+### Version note
+
+The stub uses `FreePBX::Create()->Core->addDevice()` and `addUser()` as the intended integration path, but exact method signatures can vary by FreePBX version. Confirm them on your PBX before production rollout.
+
 ## WEB DOCUMENTATION
 **Visit Documentation:** [php-ksip-telnet & juv-ksip-softphone Documentation](https://kitenebie.github.io/FreePBX-Console/)
 
