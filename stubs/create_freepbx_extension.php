@@ -19,6 +19,32 @@ function respond(array $payload, int $exitCode = 0): void
     exit($exitCode);
 }
 
+function invokeCoreMethod(object $core, string $method, array $baseArgs, array $optionalArgs = [])
+{
+    $reflection = new ReflectionMethod($core, $method);
+    $requiredCount = $reflection->getNumberOfRequiredParameters();
+    $maxCount = $reflection->getNumberOfParameters();
+
+    $args = $baseArgs;
+    foreach ($optionalArgs as $arg) {
+        if (count($args) >= $maxCount) {
+            break;
+        }
+        $args[] = $arg;
+    }
+
+    if (count($args) < $requiredCount) {
+        throw new RuntimeException(sprintf(
+            '%s expects at least %d arguments, only %d prepared',
+            $method,
+            $requiredCount,
+            count($args)
+        ));
+    }
+
+    return $reflection->invokeArgs($core, $args);
+}
+
 if ($argc < 2) {
     respond([
         'status' => 'error',
@@ -62,8 +88,7 @@ try {
         throw new RuntimeException('FreePBX bootstrap did not load correctly');
     }
 
-    $freepbx = \FreePBX::Create();
-    $core = $freepbx->Core;
+    $core = \FreePBX::Core();
 
     if (!$core || !method_exists($core, 'addDevice') || !method_exists($core, 'addUser')) {
         throw new RuntimeException('FreePBX Core addDevice/addUser methods are unavailable on this system');
@@ -97,11 +122,14 @@ try {
         'tech' => $tech,
     ];
 
-    $core->addDevice($extension, $tech, $deviceSettings);
-    $core->addUser($extension, $userSettings);
+    invokeCoreMethod($core, 'addDevice', [$extension, $tech, $deviceSettings], [false]);
+    invokeCoreMethod($core, 'addUser', [$extension, $userSettings], [false]);
 
-    if (method_exists($freepbx, 'Config')) {
-        $freepbx->Config->commit();
+    if (method_exists('\FreePBX', 'Config')) {
+        $config = \FreePBX::Config();
+        if (is_object($config) && method_exists($config, 'commit')) {
+            $config->commit();
+        }
     }
 
     if (function_exists('needreload')) {
