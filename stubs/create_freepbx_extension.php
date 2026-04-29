@@ -45,6 +45,17 @@ function invokeCoreMethod(object $core, string $method, array $baseArgs, array $
     return $reflection->invokeArgs($core, $args);
 }
 
+function methodSignature(object $core, string $method): string
+{
+    $reflection = new ReflectionMethod($core, $method);
+    $names = [];
+    foreach ($reflection->getParameters() as $parameter) {
+        $names[] = '$' . $parameter->getName();
+    }
+
+    return sprintf('%s(%s)', $method, implode(', ', $names));
+}
+
 if ($argc < 2) {
     respond([
         'status' => 'error',
@@ -122,8 +133,25 @@ try {
         'tech' => $tech,
     ];
 
-    invokeCoreMethod($core, 'addDevice', [$extension, $tech, $deviceSettings], [false]);
-    invokeCoreMethod($core, 'addUser', [$extension, $userSettings], [false]);
+    try {
+        invokeCoreMethod($core, 'addDevice', [$extension, $tech, $deviceSettings], [false]);
+    } catch (Throwable $e) {
+        throw new RuntimeException(
+            'addDevice failed via ' . methodSignature($core, 'addDevice') . ': ' . $e->getMessage(),
+            0,
+            $e
+        );
+    }
+
+    try {
+        invokeCoreMethod($core, 'addUser', [$extension, $userSettings], [false]);
+    } catch (Throwable $e) {
+        throw new RuntimeException(
+            'addUser failed via ' . methodSignature($core, 'addUser') . ': ' . $e->getMessage(),
+            0,
+            $e
+        );
+    }
 
     if (method_exists('\FreePBX', 'Config')) {
         $config = \FreePBX::Config();
@@ -145,5 +173,7 @@ try {
     respond([
         'status' => 'error',
         'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
     ], 1);
 }
