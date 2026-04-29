@@ -56,6 +56,54 @@ function methodSignature(object $core, string $method): string
     return sprintf('%s(%s)', $method, implode(', ', $names));
 }
 
+function normalizeDeviceSettings(string $extension, string $tech, string $name, string $password, array $settings): array
+{
+    $base = [
+        'devicetype' => 'fixed',
+        'user' => $extension,
+        'description' => $name,
+        'emergency_cid' => '',
+        'hint_override' => '',
+        'dial' => 'PJSIP/' . $extension,
+        'defaultuser' => $extension,
+        'secret' => $password,
+        'dtmfmode' => 'rfc4733',
+        'disallow' => 'all',
+        'allow' => 'ulaw,alaw',
+        'context' => 'from-internal',
+        'mailbox' => $extension . '@device',
+        'sipdriver' => 'chan_pjsip',
+    ];
+
+    $merged = array_merge($base, $settings);
+    $normalized = [];
+    $flag = 0;
+
+    foreach ($merged as $key => $value) {
+        if (is_array($value) && array_key_exists('value', $value)) {
+            $normalized[$key] = $value;
+            if (!array_key_exists('flag', $normalized[$key])) {
+                $normalized[$key]['flag'] = $flag++;
+            }
+            continue;
+        }
+
+        $normalized[$key] = [
+            'value' => $value,
+            'flag' => $flag++,
+        ];
+    }
+
+    if ($tech === 'pjsip' && empty($normalized['max_contacts']['value'])) {
+        $normalized['max_contacts'] = [
+            'value' => 1,
+            'flag' => $flag++,
+        ];
+    }
+
+    return $normalized;
+}
+
 if ($argc < 2) {
     respond([
         'status' => 'error',
@@ -109,17 +157,7 @@ try {
         throw new RuntimeException("Extension {$extension} already exists");
     }
 
-    $deviceSettings = array_merge([
-        'devicetype' => 'fixed',
-        'secret' => $password,
-        'dtmfmode' => 'rfc4733',
-        'disallow' => 'all',
-        'allow' => 'ulaw,alaw',
-        'context' => 'from-internal',
-        'dial' => 'PJSIP/' . $extension,
-        'mailbox' => $extension . '@device',
-        'sipdriver' => 'chan_pjsip',
-    ], $settings);
+    $deviceSettings = normalizeDeviceSettings($extension, $tech, $name, $password, $settings);
 
     $userSettings = [
         'extension' => $extension,
