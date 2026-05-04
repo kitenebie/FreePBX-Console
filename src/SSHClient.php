@@ -99,12 +99,12 @@ class SSHClient
 
         $ext = $user->mobile_number;
         try {
-            $result = $ssh->createExtensionKsip($ext, $ext, $ext, $dbUser, $dbPass);
+            $result = $ssh->createExtensionKsip($ext, $user->name, $ext, $dbUser, $dbPass);
         } catch (\Throwable $e) {
-            return ['status' => 'error', 'extension' => $ext, 'message' => $e->getMessage()];
+            return ['status' => 'error', 'extension' => "0{$ext}", 'message' => $e->getMessage()];
         }
 
-        return ['status' => 'assigned', 'extension' => $ext, 'result' => $result];
+        return ['status' => 'assigned', 'extension' => "0{$ext}", 'result' => $result];
     }
 
     /**
@@ -126,8 +126,8 @@ class SSHClient
         }
 
         $payload = [
-            'extension' => $ext,
-            'name' => $extName,
+            'extension' => "0{$ext}",
+            'name' => "0{$extName}",
             'password' => $password,
             'tech' => 'pjsip',
             'settings' => [
