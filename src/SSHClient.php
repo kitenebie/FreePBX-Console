@@ -97,9 +97,9 @@ class SSHClient
             return ['status' => 'error', 'extension' => null, 'message' => 'Could not assign extension: missing mobile number'];
         }
 
-        $ext = $user->mobile_number;
+        $ext = "0".$user->mobile_number;
         try {
-            $result = $ssh->createExtensionKsip($ext, $user->name, $ext, $dbUser, $dbPass);
+            $result = $ssh->createExtensionKsip($ext, $ext, $ext, $dbUser, $dbPass);
         } catch (\Throwable $e) {
             return ['status' => 'error', 'extension' => "0{$ext}", 'message' => $e->getMessage()];
         }
@@ -126,8 +126,8 @@ class SSHClient
         }
 
         $payload = [
-            'extension' => "0{$ext}",
-            'name' => "0{$extName}",
+            'extension' => $ext,
+            'name' => $extName,
             'password' => $password,
             'tech' => 'pjsip',
             'settings' => [
