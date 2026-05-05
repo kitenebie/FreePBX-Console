@@ -247,6 +247,7 @@
         <a href="#laravel-api">Test API</a>
 
         <div class="nav-group">Artisan</div>
+        <a href="#make-ksip-config">make:ksip-config</a>
         <a href="#make-ksip">make:ksip</a>
         <a href="#ksip-register-user">make:ksip-register-user</a>
         <a href="#supervisor">Production Supervisor</a>
@@ -561,6 +562,143 @@ Route::post('/extensions/generate', [ExtensionController::class, 'generate']);</
   -d '{"extension": "1001", "password": "secret123"}'</code></pre>
             </div>
         </div>
+    </section>
+
+    <!-- make:ksip-config -->
+    <section id="make-ksip-config">
+        <h2>make:ksip-config &mdash; Per-User Softphone Settings</h2>
+        <p>Generates a migration, model, controller, and API routes so each authenticated user can save and retrieve their own softphone configuration from the database.</p>
+
+        <pre><code class="language-bash">php artisan make:ksip-config
+php artisan migrate</code></pre>
+
+        <h3>What it generates</h3>
+        <ul>
+            <li><code>database/migrations/{timestamp}_create_softphone_configs_table.php</code></li>
+            <li><code>app/Models/SoftphoneConfig.php</code></li>
+            <li><code>app/Http/Controllers/Api/SoftphoneConfigController.php</code></li>
+            <li>Appends routes to <code>routes/api.php</code></li>
+        </ul>
+
+        <h3>Migration Schema</h3>
+        <pre><code class="language-php">Schema::create('softphone_configs', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+    // SIP Connection
+    $table->string('server')->nullable();
+    $table->enum('ws_protocol', ['ws', 'wss'])->default('ws');
+    $table->string('ws_port')->default('8088');
+    $table->string('extension')->nullable();
+    $table->string('password')->nullable();
+    $table->string('display_name')->nullable();
+
+    // Codecs
+    $table->json('audio_codecs')->nullable();
+    $table->json('video_codecs')->nullable();
+
+    // UI Toggles
+    $table->boolean('enabled_bubble')->default(true);
+    $table->boolean('show_dialer')->default(true);
+    $table->boolean('show_setting')->default(true);
+    $table->boolean('show_opacity')->default(true);
+    $table->boolean('answer_with_video_call')->default(false);
+    $table->boolean('show_incoming_call_video_btn')->default(true);
+    $table->boolean('show_incoming_call_audio')->default(true);
+    $table->boolean('fullscreen')->default(false);
+
+    // Recording
+    $table->boolean('auto_record')->default(false);
+    $table->string('recording_dir')->default('video/recordings/Ksip');
+    $table->string('upload_api_url')->nullable();
+
+    // Position
+    $table->integer('position_top')->nullable();
+    $table->integer('position_bottom')->nullable();
+    $table->integer('position_left')->nullable();
+    $table->integer('position_right')->nullable();
+
+    $table->unique('user_id'); // one config per user
+    $table->timestamps();
+});</code></pre>
+
+        <h3>Generated API Routes</h3>
+        <pre><code class="language-php">Route::middleware(['auth:sanctum,web'])->group(function () {
+    Route::get('/softphone-config',  [SoftphoneConfigController::class, 'show']);
+    Route::post('/softphone-config', [SoftphoneConfigController::class, 'save']);
+});</code></pre>
+
+        <table>
+            <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><span class="method-badge method-get">GET</span></td>
+                    <td><code>/api/softphone-config</code></td>
+                    <td>Get the authenticated user's config</td>
+                </tr>
+                <tr>
+                    <td><span class="method-badge method-post">POST</span></td>
+                    <td><code>/api/softphone-config</code></td>
+                    <td>Save / update the authenticated user's config</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Save Config Example</h3>
+        <pre><code class="language-bash2">curl -X POST http://your-app.com/api/softphone-config \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "server": "192.168.1.100",
+    "ws_protocol": "ws",
+    "ws_port": "8088",
+    "extension": "1001",
+    "password": "mypassword",
+    "display_name": "Juan Luna",
+    "audio_codecs": ["PCMU", "PCMA"],
+    "video_codecs": ["VP8", "H264"],
+    "auto_record": true
+  }'</code></pre>
+
+        <h3>React Integration &mdash; <code>configApiUrl</code> prop</h3>
+        <p>Pass the API endpoint and Bearer token to the <code>Softphone</code> component. It fetches the user's saved config on mount and falls back to built-in defaults if the API returns <code>null</code>.</p>
+        <pre><code class="language-jsx">&lt;Softphone
+  configApiUrl="/api/softphone-config"
+  configApiToken={userToken}
+/&gt;</code></pre>
+
+        <div class="alert">If the API returns <code>{ "data": null }</code> (no saved config yet), the component automatically uses its built-in default values &mdash; no extra setup needed.</div>
+
+        <h3>API Response Format</h3>
+        <pre><code class="language-json">{
+  "data": {
+    "id": 1,
+    "user_id": 42,
+    "server": "192.168.1.100",
+    "ws_protocol": "ws",
+    "ws_port": "8088",
+    "extension": "1001",
+    "password": "mypassword",
+    "display_name": "Juan Luna",
+    "audio_codecs": ["PCMU", "PCMA"],
+    "video_codecs": ["VP8", "H264"],
+    "enabled_bubble": true,
+    "show_dialer": true,
+    "show_setting": true,
+    "show_opacity": true,
+    "answer_with_video_call": false,
+    "show_incoming_call_video_btn": true,
+    "show_incoming_call_audio": true,
+    "fullscreen": false,
+    "auto_record": true,
+    "recording_dir": "video/recordings/Ksip",
+    "upload_api_url": null,
+    "position_top": null,
+    "position_bottom": 20,
+    "position_left": null,
+    "position_right": 20
+  }
+}</code></pre>
     </section>
 
     <!-- make:ksip -->

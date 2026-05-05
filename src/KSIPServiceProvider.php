@@ -13,6 +13,7 @@ class KSIPServiceProvider extends ServiceProvider
                 KSIPGen::class,
                 KSIPRegisterUser::class,
                 KSIPMake::class,
+                KSIPConfig::class,
             ]);
         }
     }

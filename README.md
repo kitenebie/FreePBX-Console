@@ -309,6 +309,115 @@ curl -X POST http://your-app.com/api/extensions \
 
 ---
 
+## `make:ksip-config` — Per-User Softphone Settings
+
+Generates a migration, model, controller, and API routes so each user can save their own softphone configuration in the database.
+
+```bash
+php artisan make:ksip-config
+php artisan migrate
+```
+
+### What it generates
+
+- `database/migrations/{timestamp}_create_softphone_configs_table.php`
+- `app/Models/SoftphoneConfig.php`
+- `app/Http/Controllers/Api/SoftphoneConfigController.php`
+- Appends routes to `routes/api.php`
+
+### Migration Schema
+
+```php
+Schema::create('softphone_configs', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+    // SIP Connection
+    $table->string('server')->nullable();
+    $table->enum('ws_protocol', ['ws', 'wss'])->default('ws');
+    $table->string('ws_port')->default('8088');
+    $table->string('extension')->nullable();
+    $table->string('password')->nullable();
+    $table->string('display_name')->nullable();
+
+    // Codecs
+    $table->json('audio_codecs')->nullable();
+    $table->json('video_codecs')->nullable();
+
+    // UI Toggles
+    $table->boolean('enabled_bubble')->default(true);
+    $table->boolean('show_dialer')->default(true);
+    $table->boolean('show_setting')->default(true);
+    $table->boolean('show_opacity')->default(true);
+    $table->boolean('answer_with_video_call')->default(false);
+    $table->boolean('show_incoming_call_video_btn')->default(true);
+    $table->boolean('show_incoming_call_audio')->default(true);
+    $table->boolean('fullscreen')->default(false);
+
+    // Recording
+    $table->boolean('auto_record')->default(false);
+    $table->string('recording_dir')->default('video/recordings/Ksip');
+    $table->string('upload_api_url')->nullable();
+
+    // Position
+    $table->integer('position_top')->nullable();
+    $table->integer('position_bottom')->nullable();
+    $table->integer('position_left')->nullable();
+    $table->integer('position_right')->nullable();
+
+    $table->unique('user_id'); // one config per user
+    $table->timestamps();
+});
+```
+
+### Generated API Routes
+
+```php
+Route::middleware(['auth:sanctum,web'])->group(function () {
+    Route::get('/softphone-config',  [SoftphoneConfigController::class, 'show']);
+    Route::post('/softphone-config', [SoftphoneConfigController::class, 'save']);
+});
+```
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/softphone-config` | Get the authenticated user's config |
+| `POST` | `/api/softphone-config` | Save / update the authenticated user's config |
+
+### Save Config Example
+
+```bash
+curl -X POST http://your-app.com/api/softphone-config \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "server": "192.168.1.100",
+    "ws_protocol": "ws",
+    "ws_port": "8088",
+    "extension": "1001",
+    "password": "mypassword",
+    "display_name": "Juan Luna",
+    "audio_codecs": ["PCMU", "PCMA"],
+    "video_codecs": ["VP8", "H264"],
+    "auto_record": true
+  }'
+```
+
+### React Integration — `configApiUrl` prop
+
+Pass the API endpoint to the `Softphone` component. It will fetch the user's saved config on mount and fall back to default values if no config is found.
+
+```jsx
+<Softphone
+  configApiUrl="/api/softphone-config"
+  configApiToken={userToken}  // Bearer token for auth:sanctum
+/>
+```
+
+If the API returns `{ "data": null }`, the component uses its built-in default config.
+
+---
+
 ## `make:ksip` — Create Extension via CLI
 
 Create a FreePBX PJSIP extension directly from the terminal without writing any PHP code.

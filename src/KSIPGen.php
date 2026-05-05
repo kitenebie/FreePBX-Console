@@ -343,7 +343,8 @@ class UserController extends Controller
             'name' => $user->name,
             'age' => $user->age,
             'address' => $user->address,
-            'mobile_number' => $user->mobile_number
+            'mobile_number' => $user->mobile_number,
+            'avatar' => $user->avatar
         ]);
     }
 }
