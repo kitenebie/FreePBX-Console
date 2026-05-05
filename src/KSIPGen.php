@@ -13,6 +13,7 @@ class KSIPGen extends Command
     public function handle()
     {
         $this->generateController();
+        $this->generateUserController();
         $this->generateMigration();
         $this->appendRoutes();
 
@@ -35,6 +36,20 @@ class KSIPGen extends Command
 
         File::put($path, $this->controllerStub());
         $this->info('Created: app/Http/Controllers/Api/CallRecordingController.php');
+    }
+
+    protected function generateUserController()
+    {
+        $dir  = $this->laravel->make('path') . '/Http/Controllers';
+        $path = $dir . '/UserController.php';
+
+        if (File::exists($path)) {
+            $this->warn('UserController already exists, skipping.');
+            return;
+        }
+
+        File::put($path, $this->userControllerStub());
+        $this->info('Created: app/Http/Controllers/UserController.php');
     }
 
     protected function generateMigration()
@@ -60,12 +75,12 @@ class KSIPGen extends Command
         $routes = $this->routesStub();
 
         if (strpos(File::get($path), 'CallRecordingController') !== false) {
-            $this->warn('Routes already exist in api.php, skipping.');
+            $this->warn('Routes already exist in web.php, skipping.');
             return;
         }
 
         File::append($path, "\n" . $routes);
-        $this->info('Appended routes to routes/api.php');
+        $this->info('Appended routes to routes/web.php');
     }
 
     protected function controllerStub(): string
@@ -293,13 +308,55 @@ PHP;
 PHP;
     }
 
-    protected function routesStub(): string
+    protected function userControllerStub(): string
     {
         return <<<'PHP'
 <?php
 
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+
+class UserController extends Controller
+{
+    /**
+     * Get user by extension number
+     * 
+     * @param string $ext Extension number (matches user's mobile_number)
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getUserByExtension($ext)
+    {
+        // Find user where mobile_number matches the extension
+        $user = User::where('mobile_number', $ext)->first();
+        
+        // Return 404 if user not found
+        if (!$user) {
+            return response()->json([
+                'error' => 'User not found'
+            ], 404);
+        }
+        
+        // Return user data
+        return response()->json([
+            'name' => $user->name,
+            'age' => $user->age,
+            'address' => $user->address,
+            'mobile_number' => $user->mobile_number
+        ]);
+    }
+}
+PHP;
+    }
+
+    protected function routesStub(): string
+    {
+        return <<<'PHP'
+
+// KSIP Call Recording Routes
 use App\Http\Controllers\Api\CallRecordingController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
 
 Route::prefix('api/recordings')->group(function () {
     Route::post('/upload', [CallRecordingController::class, 'upload']);
@@ -308,6 +365,9 @@ Route::prefix('api/recordings')->group(function () {
     Route::get('/{id}/download', [CallRecordingController::class, 'download']);
     Route::delete('/{id}', [CallRecordingController::class, 'delete']);
 });
+
+// KSIP User Lookup Route
+Route::get('/user/extension/{ext}', [UserController::class, 'getUserByExtension']);
 PHP;
     }
 }

@@ -309,6 +309,46 @@ curl -X POST http://your-app.com/api/extensions \
 
 ---
 
+## `make:ksip` — Create Extension via CLI
+
+Create a FreePBX PJSIP extension directly from the terminal without writing any PHP code.
+
+```bash
+php artisan make:ksip --extension="1001" --name="Juan Luna" --secret="mypassword"
+```
+
+`--secret` is optional — if omitted, the extension number is used as the password.
+
+```bash
+php artisan make:ksip --extension="1001" --name="Juan Luna"
+# Password defaults to: 1001
+```
+
+### Options
+
+| Option | Required | Description |
+|--------|----------|-------------|
+| `--extension` | ✅ | The PJSIP extension number |
+| `--name` | ✅ | Display name / Caller ID |
+| `--secret` | ❌ | SIP password (defaults to extension number) |
+
+### Prerequisites
+
+Make sure `config/services.php` has the `freepbx` block:
+
+```php
+'freepbx' => [
+    'host'    => env('SSH_HOST'),
+    'user'    => env('SSH_USER'),
+    'pass'    => env('SSH_PASS'),
+    'port'    => env('SSH_PORT', 22),
+    'db_user' => env('SSH_DB_USER'),
+    'db_pass' => env('SSH_DB_PASS'),
+],
+```
+
+---
+
 ## Auto Extension Registration (ksipRegisterUser)
 
 Automatically generates a 12-digit extension number from a user's name acronym + birthdate, then registers it in FreePBX.

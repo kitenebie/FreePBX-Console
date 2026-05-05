@@ -12,6 +12,7 @@ class KSIPServiceProvider extends ServiceProvider
             $this->commands([
                 KSIPGen::class,
                 KSIPRegisterUser::class,
+                KSIPMake::class,
             ]);
         }
     }
