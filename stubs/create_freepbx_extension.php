@@ -118,14 +118,18 @@ function normalizeDeviceSettings(string $extension, string $tech, string $name, 
  * Patch PJSIP timer fields directly in the DB using PDO prepared statements.
  * Avoids ADODB isError() by checking row existence before UPDATE/INSERT.
  */
-function patchPjsipTimers(object $db, string $extension): void
+function patchPjsipFields(object $db, string $extension): void
 {
-    $timerFields = [
+    $fields = [
         'timers_min_se'       => '0',
         'timers_sess_expires' => '0',
+        'media_encryption'    => 'dtls',
+        'webrtc'              => 'yes',
+        'max_video_streams'   => '2',
+        'timers'              => 'no',
     ];
 
-    foreach ($timerFields as $keyword => $value) {
+    foreach ($fields as $keyword => $value) {
         try {
             $stmt = $db->prepare(
                 "SELECT COUNT(*) FROM pjsip WHERE id = :id AND keyword = :keyword"
@@ -145,7 +149,6 @@ function patchPjsipTimers(object $db, string $extension): void
                 $ins->execute([':id' => $extension, ':keyword' => $keyword, ':data' => $value]);
             }
         } catch (Throwable $e) {
-            // Non-fatal: log to stderr and continue
             fwrite(STDERR, "Warning: could not patch {$keyword} for {$extension}: " . $e->getMessage() . PHP_EOL);
         }
     }
@@ -258,9 +261,9 @@ try {
     // Small settle time to let addDevice/addUser flush rows to DB
     usleep(300000); // 300ms
 
-    // Patch timers using safe PDO prepared statements (avoids ADODB isError)
+    // Patch PJSIP fields that addDevice() ignores, using safe PDO prepared statements
     $db = \FreePBX::Database();
-    patchPjsipTimers($db, $extension);
+    patchPjsipFields($db, $extension);
 
     respond([
         'status'    => 'success',
