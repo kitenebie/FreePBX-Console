@@ -192,6 +192,7 @@ function patchDtlsCustomPostConf(string $extension): void
 
     // Build the DTLS block — matches exactly what FreePBX GUI writes
     $block = "\n[{$extension}]\n"
+           . "webrtc=yes\n"
            . "dtls_cert_file={$certFile}\n"
            . "dtls_private_key={$keyFile}\n"
            . "dtls_verify=fingerprint\n"
