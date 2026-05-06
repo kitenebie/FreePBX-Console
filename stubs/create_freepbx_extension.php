@@ -224,10 +224,8 @@ try {
     // timers_min_se and timers_sess_expires are Asterisk-level PJSIP params
     // not exposed via FreePBX addDevice(); patch them directly in the DB.
     $db = \FreePBX::Database();
-    $stmt = $db->prepare("UPDATE pjsip SET data = ? WHERE id = ? AND keyword = 'timers_min_se'");
-    $stmt->execute(['0', $extension]);
-    $stmt = $db->prepare("UPDATE pjsip SET data = ? WHERE id = ? AND keyword = 'timers_sess_expires'");
-    $stmt->execute(['0', $extension]);
+    $db->query("UPDATE pjsip SET data = '0' WHERE id = '{$extension}' AND keyword = 'timers_min_se'");
+    $db->query("UPDATE pjsip SET data = '0' WHERE id = '{$extension}' AND keyword = 'timers_sess_expires'");
 
     if (function_exists('needreload')) {
         needreload();
