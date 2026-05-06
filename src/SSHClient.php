@@ -101,10 +101,10 @@ class SSHClient
         try {
             $result = $ssh->createExtensionKsip($ext, $ext, $ext, $dbUser, $dbPass);
         } catch (\Throwable $e) {
-            return ['status' => 'error', 'extension' => "0{$ext}", 'message' => $e->getMessage()];
+            return ['status' => 'error', 'extension' => $ext, 'message' => $e->getMessage()];
         }
 
-        return ['status' => 'assigned', 'extension' => "0{$ext}", 'result' => $result];
+        return ['status' => 'assigned', 'extension' => $ext, 'result' => $result];
     }
 
     /**

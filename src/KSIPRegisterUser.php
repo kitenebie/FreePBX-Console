@@ -120,14 +120,10 @@ class AssignExtensionToUsers extends Command
             if ($result['status'] === 'assigned') {
                 \App\Models\UserSipAccount::create([
                     'user_id'   => $user->id,
-                    'extension' => "0{$result['extension']}",
-                    'extension_password' => "0{$result['extension']}",
+                    'extension' => $result['extension'],
+                    'extension_password' => $result['extension'],
                 ]);
-                $this->info("Assigned extension 0{$result['extension']} to user ID {$user->id}");
-                $this->info('Running fwconsole reload...');
-                $ssh->exec('fwconsole reload 2>&1');
-                $this->info('Waiting 10 seconds...');
-                sleep(10);
+                $this->info("Assigned extension {$result['extension']} to user ID {$user->id}");
             } else {
                 $this->warn("User ID {$user->id}: " . ($result['message'] ?? $result['status']));
             }
