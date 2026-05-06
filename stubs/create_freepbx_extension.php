@@ -103,6 +103,7 @@ function normalizeDeviceSettings(string $extension, string $tech, string $name, 
             'timers'                => 'no',
             'timers_sess_expires'   => 0,
             'media_encryption'      => 'dtls',
+            'webrtc'                => 'yes',
         ];
         foreach ($pjsipDefaults as $key => $val) {
             if (empty($normalized[$key]['value'])) {
