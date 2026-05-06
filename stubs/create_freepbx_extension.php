@@ -96,11 +96,19 @@ function normalizeDeviceSettings(string $extension, string $tech, string $name, 
         ];
     }
 
-    if ($tech === 'pjsip' && empty($normalized['max_contacts']['value'])) {
-        $normalized['max_contacts'] = [
-            'value' => 1,
-            'flag' => $flag++,
+    if ($tech === 'pjsip') {
+        $pjsipDefaults = [
+            'max_contacts'          => 1,
+            'max_video_streams'     => 2,
+            'timers'                => 'no',
+            'timers_sess_expires'   => 0,
+            'media_encryption'      => 'dtls',
         ];
+        foreach ($pjsipDefaults as $key => $val) {
+            if (empty($normalized[$key]['value'])) {
+                $normalized[$key] = ['value' => $val, 'flag' => $flag++];
+            }
+        }
     }
 
     return $normalized;

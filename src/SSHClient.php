@@ -133,7 +133,7 @@ class SSHClient
             'settings' => [
                 'dtmfmode' => 'rfc4733',
                 'disallow' => 'all',
-                'allow' => 'ulaw,alaw,vp8,h264',
+                'allow' => 'ulaw&alaw&vp8&h264',
                 'direct_media' => 'no',
                 'max_contacts' => '1',
                 'rtp_symmetric' => 'yes',
