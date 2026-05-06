@@ -119,6 +119,18 @@ class SSHClient
             throw new \Exception("Not connected to SSH");
         }
 
+        // Always push the latest stub to the PBX before executing
+        $localStub = __DIR__ . '/../stubs/create_freepbx_extension.php';
+        if (file_exists($localStub)) {
+            $stubContent = base64_encode(file_get_contents($localStub));
+            $this->ssh->exec(sprintf(
+                'echo %s | base64 -d > %s && chmod 755 %s',
+                escapeshellarg($stubContent),
+                escapeshellarg($remoteScript),
+                escapeshellarg($remoteScript)
+            ));
+        }
+
         // Sanitize inputs
         $ext      = preg_replace('/[^0-9a-zA-Z]/', '', $ext);
         if ($ext === '') {
