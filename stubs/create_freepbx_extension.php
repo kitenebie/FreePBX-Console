@@ -21,9 +21,9 @@ function respond(array $payload, int $exitCode = 0): void
 
 function invokeCoreMethod(object $core, string $method, array $baseArgs, array $optionalArgs = [])
 {
-    $reflection = new ReflectionMethod($core, $method);
+    $reflection    = new ReflectionMethod($core, $method);
     $requiredCount = $reflection->getNumberOfRequiredParameters();
-    $maxCount = $reflection->getNumberOfParameters();
+    $maxCount      = $reflection->getNumberOfParameters();
 
     $args = $baseArgs;
     foreach ($optionalArgs as $arg) {
@@ -48,7 +48,7 @@ function invokeCoreMethod(object $core, string $method, array $baseArgs, array $
 function methodSignature(object $core, string $method): string
 {
     $reflection = new ReflectionMethod($core, $method);
-    $names = [];
+    $names      = [];
     foreach ($reflection->getParameters() as $parameter) {
         $names[] = '$' . $parameter->getName();
     }
@@ -97,17 +97,26 @@ function normalizeDeviceSettings(string $extension, string $tech, string $name, 
     }
 
     if ($tech === 'pjsip') {
-        $pjsipDefaults = [
-            'max_contacts'      => 1,
-            'max_video_streams' => 2,
-            'timers'            => 'no',
+        // Force-override these fields always — do NOT use empty() check.
+        // FreePBX's addDevice() sets its own defaults (e.g. timers=yes)
+        // which would win if we only set when empty.
+        $pjsipForced = [
+            'max_contacts'      => '1',
+            'max_video_streams' => '2',
+            'timers'            => 'no',    // ← must be forced, not conditional
             'media_encryption'  => 'dtls',
             'webrtc'            => 'yes',
+            'icesupport'        => 'yes',
+            'bundle'            => 'yes',
+            'rtcp_mux'          => 'yes',
+            'rtp_symmetric'     => 'yes',
+            'rewrite_contact'   => 'yes',
+            'force_rport'       => 'yes',
+            'direct_media'      => 'no',
         ];
-        foreach ($pjsipDefaults as $key => $val) {
-            if (empty($normalized[$key]['value'])) {
-                $normalized[$key] = ['value' => $val, 'flag' => $flag++];
-            }
+
+        foreach ($pjsipForced as $key => $val) {
+            $normalized[$key] = ['value' => $val, 'flag' => $flag++];
         }
     }
 
@@ -115,39 +124,45 @@ function normalizeDeviceSettings(string $extension, string $tech, string $name, 
 }
 
 /**
- * Patch PJSIP timer fields directly in the DB using PDO prepared statements.
- * Avoids ADODB isError() by checking row existence before UPDATE/INSERT.
+ * Patch PJSIP fields directly in the DB using PDO prepared statements.
+ *
+ * Uses INSERT ... ON DUPLICATE KEY UPDATE to guarantee the value is set
+ * regardless of whether the row already exists — avoids ADODB isError().
+ *
+ * Note: timers_min_se minimum is 90 per RFC 4028; Asterisk ignores lower
+ * values. It is harmless when timers = no, which disables session timers.
  */
 function patchPjsipFields(object $db, string $extension): void
 {
     $fields = [
-        'timers_min_se'       => '0',
-        'timers_sess_expires' => '0',
+        'timers'              => 'no',    // ← most important: disable session timers
+        'timers_min_se'       => '0',    // RFC minimum; irrelevant when timers=no
+        'timers_sess_expires' => '0',  // same
         'media_encryption'    => 'dtls',
         'webrtc'              => 'yes',
         'max_video_streams'   => '2',
-        'timers'              => 'no',
+        'icesupport'          => 'yes',
+        'bundle'              => 'yes',
+        'rtcp_mux'            => 'yes',
+        'rtp_symmetric'       => 'yes',
+        'rewrite_contact'     => 'yes',
+        'force_rport'         => 'yes',
+        'direct_media'        => 'no',
     ];
 
     foreach ($fields as $keyword => $value) {
         try {
-            $stmt = $db->prepare(
-                "SELECT COUNT(*) FROM pjsip WHERE id = :id AND keyword = :keyword"
-            );
-            $stmt->execute([':id' => $extension, ':keyword' => $keyword]);
-            $exists = (int) $stmt->fetchColumn();
-
-            if ($exists > 0) {
-                $upd = $db->prepare(
-                    "UPDATE pjsip SET data = :data WHERE id = :id AND keyword = :keyword"
-                );
-                $upd->execute([':data' => $value, ':id' => $extension, ':keyword' => $keyword]);
-            } else {
-                $ins = $db->prepare(
-                    "INSERT INTO pjsip (id, keyword, data, flags) VALUES (:id, :keyword, :data, 0)"
-                );
-                $ins->execute([':id' => $extension, ':keyword' => $keyword, ':data' => $value]);
-            }
+            $stmt = $db->prepare("
+                INSERT INTO pjsip (id, keyword, data, flags)
+                VALUES (:id, :keyword, :data, 0)
+                ON DUPLICATE KEY UPDATE data = :data2
+            ");
+            $stmt->execute([
+                ':id'      => $extension,
+                ':keyword' => $keyword,
+                ':data'    => $value,
+                ':data2'   => $value,
+            ]);
         } catch (Throwable $e) {
             fwrite(STDERR, "Warning: could not patch {$keyword} for {$extension}: " . $e->getMessage() . PHP_EOL);
         }
@@ -253,15 +268,15 @@ try {
         }
     }
 
-    // Flush pending writes before patching the DB
+    // Flush pending writes before patching
     if (function_exists('needreload')) {
         needreload();
     }
 
-    // Small settle time to let addDevice/addUser flush rows to DB
+    // Settle time to let addDevice/addUser flush rows to DB
     usleep(300000); // 300ms
 
-    // Patch PJSIP fields that addDevice() ignores, using safe PDO prepared statements
+    // Patch PJSIP fields using safe PDO INSERT ... ON DUPLICATE KEY UPDATE
     $db = \FreePBX::Database();
     patchPjsipFields($db, $extension);
 
