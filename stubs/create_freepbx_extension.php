@@ -59,27 +59,27 @@ function methodSignature(object $core, string $method): string
 function normalizeDeviceSettings(string $extension, string $tech, string $name, string $password, array $settings): array
 {
     $base = [
-        'account' => $extension,
-        'devicetype' => 'fixed',
-        'user' => $extension,
-        'description' => $name,
+        'account'       => $extension,
+        'devicetype'    => 'fixed',
+        'user'          => $extension,
+        'description'   => $name,
         'emergency_cid' => '',
         'hint_override' => '',
-        'dial' => 'PJSIP/' . $extension,
-        'defaultuser' => $extension,
-        'secret' => $password,
-        'callerid' => '"' . $name . '" <' . $extension . '>',
-        'dtmfmode' => 'rfc4733',
-        'disallow' => 'all',
-        'allow' => 'ulaw,alaw',
-        'context' => 'from-internal',
-        'mailbox' => $extension . '@device',
-        'sipdriver' => 'chan_pjsip',
+        'dial'          => 'PJSIP/' . $extension,
+        'defaultuser'   => $extension,
+        'secret'        => $password,
+        'callerid'      => '"' . $name . '" <' . $extension . '>',
+        'dtmfmode'      => 'rfc4733',
+        'disallow'      => 'all',
+        'allow'         => 'ulaw,alaw',
+        'context'       => 'from-internal',
+        'mailbox'       => $extension . '@device',
+        'sipdriver'     => 'chan_pjsip',
     ];
 
-    $merged = array_merge($base, $settings);
+    $merged     = array_merge($base, $settings);
     $normalized = [];
-    $flag = 0;
+    $flag       = 0;
 
     foreach ($merged as $key => $value) {
         if (is_array($value) && array_key_exists('value', $value)) {
@@ -92,7 +92,7 @@ function normalizeDeviceSettings(string $extension, string $tech, string $name, 
 
         $normalized[$key] = [
             'value' => $value,
-            'flag' => $flag++,
+            'flag'  => $flag++,
         ];
     }
 
@@ -114,40 +114,69 @@ function normalizeDeviceSettings(string $extension, string $tech, string $name, 
     return $normalized;
 }
 
+/**
+ * Patch PJSIP timer fields directly in the DB using PDO prepared statements.
+ * Avoids ADODB isError() by checking row existence before UPDATE/INSERT.
+ */
+function patchPjsipTimers(object $db, string $extension): void
+{
+    $timerFields = [
+        'timers_min_se'       => '0',
+        'timers_sess_expires' => '0',
+    ];
+
+    foreach ($timerFields as $keyword => $value) {
+        try {
+            $stmt = $db->prepare(
+                "SELECT COUNT(*) FROM pjsip WHERE id = :id AND keyword = :keyword"
+            );
+            $stmt->execute([':id' => $extension, ':keyword' => $keyword]);
+            $exists = (int) $stmt->fetchColumn();
+
+            if ($exists > 0) {
+                $upd = $db->prepare(
+                    "UPDATE pjsip SET data = :data WHERE id = :id AND keyword = :keyword"
+                );
+                $upd->execute([':data' => $value, ':id' => $extension, ':keyword' => $keyword]);
+            } else {
+                $ins = $db->prepare(
+                    "INSERT INTO pjsip (id, keyword, data, flags) VALUES (:id, :keyword, :data, 0)"
+                );
+                $ins->execute([':id' => $extension, ':keyword' => $keyword, ':data' => $value]);
+            }
+        } catch (Throwable $e) {
+            // Non-fatal: log to stderr and continue
+            fwrite(STDERR, "Warning: could not patch {$keyword} for {$extension}: " . $e->getMessage() . PHP_EOL);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
+
 if ($argc < 2) {
-    respond([
-        'status' => 'error',
-        'message' => 'Missing payload argument',
-    ], 1);
+    respond(['status' => 'error', 'message' => 'Missing payload argument'], 1);
 }
 
 $decoded = base64_decode($argv[1], true);
 if ($decoded === false) {
-    respond([
-        'status' => 'error',
-        'message' => 'Payload is not valid base64',
-    ], 1);
+    respond(['status' => 'error', 'message' => 'Payload is not valid base64'], 1);
 }
 
 $payload = json_decode($decoded, true);
 if (!is_array($payload)) {
-    respond([
-        'status' => 'error',
-        'message' => 'Payload is not valid JSON',
-    ], 1);
+    respond(['status' => 'error', 'message' => 'Payload is not valid JSON'], 1);
 }
 
 $extension = preg_replace('/[^0-9A-Za-z]/', '', (string) ($payload['extension'] ?? ''));
-$name = trim((string) ($payload['name'] ?? $extension));
-$password = (string) ($payload['password'] ?? '');
-$tech = (string) ($payload['tech'] ?? 'pjsip');
-$settings = is_array($payload['settings'] ?? null) ? $payload['settings'] : [];
+$name      = trim((string) ($payload['name']     ?? $extension));
+$password  = (string) ($payload['password'] ?? '');
+$tech      = (string) ($payload['tech']     ?? 'pjsip');
+$settings  = is_array($payload['settings']  ?? null) ? $payload['settings'] : [];
 
 if ($extension === '' || $password === '') {
-    respond([
-        'status' => 'error',
-        'message' => 'Extension and password are required',
-    ], 1);
+    respond(['status' => 'error', 'message' => 'Extension and password are required'], 1);
 }
 
 try {
@@ -170,28 +199,28 @@ try {
     $deviceSettings = normalizeDeviceSettings($extension, $tech, $name, $password, $settings);
 
     $userSettings = [
-        'extension' => $extension,
-        'name' => $name,
-        'ringtimer' => 0,
-        'voicemail' => 'default',
-        'noanswer' => 0,
-        'recording' => 'dontcare',
-        'outboundcid' => '"' . $name . '" <' . $extension . '>',
-        'sipname' => '',
-        'mohclass' => 'default',
-        'tech' => $tech,
-        'cid_masquerade' => '',
-        'callwaiting' => 'enabled',
-        'pinless' => 'disabled',
-        'cfringtimer' => 0,
-        'concurrency_limit' => '',
-        'dictate' => 'disabled',
-        'intercom' => 'enabled',
-        'recording_in_external' => 'dontcare',
-        'recording_in_internal' => 'dontcare',
+        'extension'              => $extension,
+        'name'                   => $name,
+        'ringtimer'              => 0,
+        'voicemail'              => 'default',
+        'noanswer'               => 0,
+        'recording'              => 'dontcare',
+        'outboundcid'            => '"' . $name . '" <' . $extension . '>',
+        'sipname'                => '',
+        'mohclass'               => 'default',
+        'tech'                   => $tech,
+        'cid_masquerade'         => '',
+        'callwaiting'            => 'enabled',
+        'pinless'                => 'disabled',
+        'cfringtimer'            => 0,
+        'concurrency_limit'      => '',
+        'dictate'                => 'disabled',
+        'intercom'               => 'enabled',
+        'recording_in_external'  => 'dontcare',
+        'recording_in_internal'  => 'dontcare',
         'recording_out_external' => 'dontcare',
         'recording_out_internal' => 'dontcare',
-        'answermode' => 'disabled',
+        'answermode'             => 'disabled',
     ];
 
     try {
@@ -221,26 +250,28 @@ try {
         }
     }
 
-    // timers_min_se and timers_sess_expires are Asterisk-level PJSIP params
-    // not exposed via FreePBX addDevice(); patch them directly in the DB.
-    $db = \FreePBX::Database();
-    $db->query("UPDATE pjsip SET data = '0' WHERE id = '{$extension}' AND keyword = 'timers_min_se'");
-    $db->query("UPDATE pjsip SET data = '0' WHERE id = '{$extension}' AND keyword = 'timers_sess_expires'");
-
+    // Flush pending writes before patching the DB
     if (function_exists('needreload')) {
         needreload();
     }
 
+    // Small settle time to let addDevice/addUser flush rows to DB
+    usleep(300000); // 300ms
+
+    // Patch timers using safe PDO prepared statements (avoids ADODB isError)
+    $db = \FreePBX::Database();
+    patchPjsipTimers($db, $extension);
+
     respond([
-        'status' => 'success',
-        'message' => "Extension {$extension} created via FreePBX Core",
+        'status'    => 'success',
+        'message'   => "Extension {$extension} created via FreePBX Core",
         'extension' => $extension,
     ]);
 } catch (Throwable $e) {
     respond([
-        'status' => 'error',
+        'status'  => 'error',
         'message' => $e->getMessage(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine(),
+        'file'    => $e->getFile(),
+        'line'    => $e->getLine(),
     ], 1);
 }
