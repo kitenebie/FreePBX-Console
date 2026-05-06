@@ -98,13 +98,11 @@ function normalizeDeviceSettings(string $extension, string $tech, string $name, 
 
     if ($tech === 'pjsip') {
         $pjsipDefaults = [
-            'max_contacts'          => 1,
-            'max_video_streams'     => 2,
-            'timers'                => 'no',
-            'timers_min_se'         => 0,
-            'timers_sess_expires'   => 0,
-            'media_encryption'      => 'dtls',
-            'webrtc'                => 'yes',
+            'max_contacts'      => 1,
+            'max_video_streams' => 2,
+            'timers'            => 'no',
+            'media_encryption'  => 'dtls',
+            'webrtc'            => 'yes',
         ];
         foreach ($pjsipDefaults as $key => $val) {
             if (empty($normalized[$key]['value'])) {
@@ -222,6 +220,18 @@ try {
             $config->commit();
         }
     }
+
+    // timers_min_se and timers_sess_expires are Asterisk-level PJSIP params
+    // not exposed via FreePBX addDevice(); patch them directly in the DB.
+    $db = \FreePBX::Database();
+    $db->query(
+        "UPDATE pjsip SET data = '0' WHERE id = ? AND keyword = 'timers_min_se'",
+        [$extension]
+    );
+    $db->query(
+        "UPDATE pjsip SET data = '0' WHERE id = ? AND keyword = 'timers_sess_expires'",
+        [$extension]
+    );
 
     if (function_exists('needreload')) {
         needreload();
