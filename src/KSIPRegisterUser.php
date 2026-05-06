@@ -44,13 +44,13 @@ class KSIPRegisterUser extends Command
         $kernelPath  = $this->laravel->make('path') . '/Console/Kernel.php';
 
         if (File::exists($consolePath)) {
-            $content = File::get($consolePath);
-            if (str_contains($content, 'AssignExtensionToUsers')) {
-                $this->warn('Schedule entry already exists in routes/console.php, skipping.');
-                return;
-            }
-            File::append($consolePath, $this->scheduleStubLaravel11());
-            $this->info('Appended schedule to routes/console.php');
+            // $content = File::get($consolePath);
+            // if (str_contains($content, 'AssignExtensionToUsers')) {
+            //     $this->warn('Schedule entry already exists in routes/console.php, skipping.');
+            //     return;
+            // }
+            // File::append($consolePath, $this->scheduleStubLaravel11());
+            // $this->info('Appended schedule to routes/console.php');
         } elseif (File::exists($kernelPath)) {
             $content = File::get($kernelPath);
             if (str_contains($content, 'AssignExtensionToUsers')) {
