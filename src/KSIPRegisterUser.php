@@ -124,12 +124,14 @@ class AssignExtensionToUsers extends Command
                     'extension_password' => "0{$result['extension']}",
                 ]);
                 $this->info("Assigned extension 0{$result['extension']} to user ID {$user->id}");
+                $this->info('Running fwconsole reload...');
+                $ssh->exec('fwconsole reload 2>&1');
+                $this->info('Waiting 10 seconds...');
+                sleep(10);
             } else {
                 $this->warn("User ID {$user->id}: " . ($result['message'] ?? $result['status']));
             }
         }
-        $this->info('Reloading FreePBX...');
-        $ssh->exec('nohup fwconsole reload > /tmp/fwconsole_reload.log 2>&1 & echo "Reload started"');
         $this->info('Done.');
     }
 }
