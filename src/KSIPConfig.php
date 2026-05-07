@@ -234,8 +234,11 @@ class SoftphoneConfigController extends Controller
      */
     public function show(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json(['data' => null], 200);
+        
+        $user = $request->user_id ? \App\Models\User::find($request->user_id) : $request->user();
+
+        if (!$user) {
+            return response()->json(['message' =>'no allowed'], 401);
         }
 
         $config = SoftphoneConfig::where('user_id', $request->user()->id)->first();
@@ -249,14 +252,19 @@ class SoftphoneConfigController extends Controller
 
     /**
      * POST /api/softphone-config
-     * Creates or updates the authenticated user's config (upsert).
+     * Creates or updates config using user_id from request.
      */
     public function save(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+        
+        $user = $request->user_id ? \App\Models\User::find($request->user_id) : $request->user();
+
+        if (!$user) {
+            return response()->json(['message' =>'no allowed'], 401);
         }
+
         $validated = $request->validate([
+            'user_id'                       => 'required|integer',
             'server'                        => 'nullable|string|max:255',
             'ws_protocol'                   => 'nullable|in:ws,wss',
             'ws_port'                       => 'nullable|string|max:10',
@@ -284,9 +292,17 @@ class SoftphoneConfigController extends Controller
             'position_right'                => 'nullable|integer',
         ]);
 
+        // Security check: user_id from request must match authenticated user
+        if ($request->user_id !== $user->id) {
+            return response()->json([
+                'message' => 'Unauthorized. You can only update your own config.'
+            ], 403);
+        }
+
+        // Use user_id from request (already validated)
         $config = SoftphoneConfig::updateOrCreate(
-            ['user_id' => $request->user()->id],
-            $validated
+            ['user_id' => $request->user_id],
+            array_merge($validated, ['user_id' => $request->user_id])
         );
 
         return response()->json(['data' => $config], 200);
