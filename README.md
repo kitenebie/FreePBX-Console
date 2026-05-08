@@ -418,6 +418,78 @@ If the API returns `{ "data": null }`, the component uses its built-in default c
 
 ---
 
+## SipController — Artisan Command Integration
+
+Create extensions via HTTP API by calling the `make:ksip` Artisan command from a controller.
+
+### Controller Implementation
+
+```php
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+
+class SipController extends Controller
+{
+    public function createExtension(Request $request)
+    {
+        $request->validate([
+            'extension' => 'required|string',
+            'name'      => 'required|string',
+            'secret'    => 'required|string',
+        ]);
+
+        // Call the Artisan command
+        $exitCode = Artisan::call('make:ksip', [
+            '--extension' => $request->extension,
+            '--name'      => $request->name,
+            '--secret'    => $request->secret,
+        ]);
+
+        // Get the output of the command
+        $output = Artisan::output();
+
+        if ($exitCode === 0) {
+            return response()->json([
+                'success' => true,
+                'message' => "Extension {$request->extension} created successfully!",
+                'output'  => $output,
+            ], 201);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create extension',
+            'output'  => $output,
+        ], 500);
+    }
+}
+```
+
+### Route Registration
+
+```php
+// routes/api.php
+Route::post('/sip/create-extension', [SipController::class, 'createExtension']);
+```
+
+### API Usage
+
+```bash
+curl -X POST http://your-app.com/api/sip/create-extension \
+  -H "Content-Type: application/json" \
+  -d '{
+    "extension": "1001",
+    "name": "Juan Luna",
+    "secret": "mypassword"
+  }'
+```
+
+---
+
 ## `make:ksip` — Create Extension via CLI
 
 Create a FreePBX PJSIP extension directly from the terminal without writing any PHP code.

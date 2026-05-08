@@ -3,78 +3,1569 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIP Extension Creator</title>
+    <title>php-ksip-telnet Docs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #005a87; }
-        .result { margin-top: 20px; padding: 10px; border-radius: 4px; }
-        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f1117;
+            color: #e2e8f0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        aside {
+            width: 260px;
+            min-height: 100vh;
+            height: 100vh;
+            background: #161b22;
+            border-right: 1px solid #30363d;
+            padding: 24px 0;
+            position: fixed;
+            top: 0; left: 0;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #30363d transparent;
+        }
+
+        aside::-webkit-scrollbar { width: 4px; }
+        aside::-webkit-scrollbar-track { background: transparent; }
+        aside::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+
+        aside .logo {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 16px;
+        }
+
+        aside .logo h1 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #58a6ff;
+        }
+
+        aside .logo span {
+            font-size: 11px;
+            color: #8b949e;
+        }
+
+        aside nav a {
+            display: block;
+            padding: 7px 20px;
+            font-size: 13px;
+            color: #8b949e;
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            transition: all 0.15s;
+        }
+
+        aside nav a:hover, aside nav a.active {
+            color: #58a6ff;
+            border-left-color: #58a6ff;
+            background: #1f2937;
+        }
+
+        aside nav .nav-group {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6e7681;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 14px 20px 4px;
+        }
+
+        /* Main content */
+        main {
+            margin-left: 260px;
+            flex: 1;
+            padding: 48px 60px;
+            max-width: 900px;
+        }
+
+        section {
+            margin-bottom: 56px;
+            scroll-margin-top: 24px;
+        }
+
+        h1 { font-size: 28px; font-weight: 700; color: #f0f6fc; margin-bottom: 8px; }
+        h2 { font-size: 20px; font-weight: 600; color: #f0f6fc; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #30363d; }
+        h3 { font-size: 15px; font-weight: 600; color: #e2e8f0; margin: 24px 0 10px; }
+
+        p { font-size: 14px; color: #8b949e; line-height: 1.7; margin-bottom: 12px; }
+
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: #1f6feb33;
+            color: #58a6ff;
+            border: 1px solid #1f6feb66;
+            margin-right: 6px;
+            margin-bottom: 12px;
+        }
+
+        pre {
+            margin: 12px 0 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #30363d;
+            font-size: 13px;
+        }
+
+        pre code { padding: 16px !important; }
+
+        code:not(pre code) {
+            background: #1f2937;
+            color: #79c0ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        ul, ol { padding-left: 20px; margin-bottom: 12px; }
+        li { font-size: 14px; color: #8b949e; line-height: 1.8; }
+        li code { font-size: 12px; }
+
+        .step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .step-num {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            background: #1f6feb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 2px;
+        }
+
+        .step-body { flex: 1; }
+        .step-body h3 { margin-top: 0; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background: #161b22;
+            color: #8b949e;
+            font-weight: 600;
+            text-align: left;
+            padding: 10px 14px;
+            border: 1px solid #30363d;
+        }
+
+        td {
+            padding: 10px 14px;
+            border: 1px solid #30363d;
+            color: #e2e8f0;
+        }
+
+        td:first-child code {
+            background: #1f6feb22;
+            color: #58a6ff;
+        }
+
+        tr:nth-child(even) td { background: #161b22; }
+
+        .method-get  { background: #1a7f3722; color: #3fb950; border: 1px solid #1a7f3744; }
+        .method-post { background: #1f6feb22; color: #58a6ff; border: 1px solid #1f6feb44; }
+        .method-del  { background: #da363322; color: #f85149; border: 1px solid #da363344; }
+
+        .method-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .alert {
+            background: #1f2937;
+            border-left: 3px solid #58a6ff;
+            padding: 12px 16px;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #8b949e;
+        }
+        .language-bash{
+            color: #32fc00;
+            font-size: 16px;
+        }
+        .language-bash2{
+            color: #5df8e9;
+        }
     </style>
 </head>
 <body>
-    <h1>Create SIP Extension</h1>
-    
-    <form id="extensionForm">
-        <div class="form-group">
-            <label for="extension">Extension Number:</label>
-            <input type="text" id="extension" name="extension" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="name">Display Name:</label>
-            <input type="text" id="name" name="name" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="secret">Password:</label>
-            <input type="password" id="secret" name="secret" required>
-        </div>
-        
-        <button type="submit">Create Extension</button>
-    </form>
-    
-    <div id="result"></div>
 
-    <script>
-        document.getElementById('extensionForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                extension: document.getElementById('extension').value,
-                name: document.getElementById('name').value,
-                secret: document.getElementById('secret').value
-            };
-            
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = 'Creating extension...';
-            
-            try {
-                const response = await fetch('/api/sip/create-extension', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    resultDiv.innerHTML = `<div class="result success">${data.message}</div>`;
-                    document.getElementById('extensionForm').reset();
-                } else {
-                    resultDiv.innerHTML = `<div class="result error">${data.message}</div>`;
-                }
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="result error">Error: ${error.message}</div>`;
-            }
+<aside>
+    <div class="logo">
+        <h1>php-ksip-telnet</h1>
+        <span>FreePBX SSH Library</span>
+    </div>
+    <nav>
+        <div class="nav-group">Getting Started</div>
+        <a href="#requirements">Requirements</a>
+        <a href="#installation">Installation</a>
+
+        <div class="nav-group">Usage</div>
+        <a href="#connect">Connect to SSH</a>
+        <a href="#create-extension">Create Extension</a>
+        <a href="#get-extensions">Get Extensions</a>
+        <a href="#gen-extension">Generate Extension</a>
+        <a href="#exec">Custom SSH Command</a>
+        <a href="#env">Environment Variables</a>
+
+        <div class="nav-group">Laravel</div>
+        <a href="#laravel-install">Installation</a>
+        <a href="#laravel-env">Environment</a>
+        <a href="#laravel-service">Service Class</a>
+        <a href="#laravel-config">Config</a>
+        <a href="#laravel-provider">Service Provider</a>
+        <a href="#laravel-controller">Controller</a>
+        <a href="#laravel-routes">Routes</a>
+        <a href="#laravel-api">Test API</a>
+
+        <div class="nav-group">Artisan</div>
+        <a href="#make-ksip-config">make:ksip-config</a>
+        <a href="#make-ksip">make:ksip</a>
+        <a href="#ksip-register-user">make:ksip-register-user</a>
+        <a href="#supervisor">Production Supervisor</a>
+        <a href="#ksipgen">make:ksipgen</a>
+        <a href="#endpoints">API Endpoints</a>
+
+        <div class="nav-group">Other</div>
+        <a href="#sip-controller">SipController</a>
+        <a href="#license">License</a>
+
+        <div class="nav-group" style="color:#3fb950">juv-ksip-softphone</div>
+        <a href="#sp-intro">Overview</a>
+        <a href="#sp-install">Installation</a>
+        <a href="#sp-quickstart">Quick Start</a>
+        <a href="#sp-props">Props</a>
+        <a href="#sp-examples">Examples</a>
+        <a href="#sp-ksipcall">ksipcall API</a>
+        <a href="#sp-settings">Settings Panel</a>
+        <a href="#sp-cdn">CDN Usage</a>
+        <a href="#sp-websocket">WebSocket Protocol</a>
+        <a href="#sp-freepbx">FreePBX Requirements</a>
+        <a href="#sp-recording">Auto Recording</a>
+        <a href="#sp-localstorage">localStorage</a>
+    </nav>
+</aside>
+
+<main>
+
+    <!-- Header -->
+    <section id="intro">
+        <h1>php-ksip-telnet</h1>
+        <p>A PHP library for managing FreePBX/Asterisk PJSIP extensions remotely via SSH.</p>
+        <div>
+            <span class="badge">PHP >= 7.4</span>
+            <span class="badge">MIT License</span>
+            <span class="badge">Composer</span>
+            <span class="badge">Laravel Ready</span>
+        </div>
+    </section>
+
+    <!-- Requirements -->
+    <section id="requirements">
+        <h2>Requirements</h2>
+        <ul>
+            <li>PHP >= 7.4</li>
+            <li>Composer</li>
+            <li>FreePBX / Asterisk server with SSH access</li>
+        </ul>
+    </section>
+
+    <!-- Installation -->
+    <section id="installation">
+        <h2>Installation</h2>
+        <pre><code class="language-bash">composer require codego/php-ksip-telnet</code></pre>
+    </section>
+
+    <!-- Usage -->
+    <section id="connect">
+        <h2>Usage</h2>
+        <h3>1. Connect to SSH</h3>
+        <pre><code class="language-php">&lt;?php
+
+require 'vendor/autoload.php';
+
+use KsipTelnet\SSHClient;
+
+$client = new SSHClient();
+
+// Default port 22
+$client->connect('your-server-ip', 'root', 'your-password');
+
+// Custom port
+$client->connect('your-server-ip', 'root', 'your-password', 2222);</code></pre>
+    </section>
+
+    <section id="create-extension">
+        <h3>2. Create a PJSIP Extension</h3>
+        <pre><code class="language-php">$result = $client->createExtensionKsip(
+    '1001',          // extension number
+    'secret123',     // extension password
+    'freepbxuser',   // MySQL username
+    'dbpassword'     // MySQL password
+);
+
+echo $result['sql_output'];
+echo $result['reload_output'];</code></pre>
+    </section>
+
+    <section id="get-extensions">
+        <h3>3. Get All Extensions</h3>
+        <pre><code class="language-php">$extensions = $client->getExtKsipList('freepbxuser', 'dbpassword');
+// returns: ['1001', '1002', '1003', ...]</code></pre>
+    </section>
+
+    <section id="gen-extension">
+        <h3>4. Generate Extension if Not Exists</h3>
+        <pre><code class="language-php">$result = $client->genExtKsip(
+    [
+        'extName'  => '1005',
+        'password' => 'secret123'  // optional, defaults to extName
+    ],
+    'freepbxuser',
+    'dbpassword'
+);
+
+// If extension already exists:
+// ['status' => 'exists', 'extension' => '1005', 'message' => 'Extension 1005 already exists']
+
+// If extension was created:
+// ['status' => 'created', 'extension' => '1005', 'result' => [...]]</code></pre>
+    </section>
+
+    <section id="exec">
+        <h3>5. Run a Custom SSH Command</h3>
+        <pre><code class="language-php">$output = $client->exec('asterisk -rx "pjsip show endpoints"');
+echo $output;</code></pre>
+    </section>
+
+    <section id="env">
+        <h2>Environment Variables (Recommended)</h2>
+        <p>Instead of hardcoding credentials, use environment variables:</p>
+        <pre><code class="language-bash2">export SSH_HOST=your-server-ip
+export SSH_USER=root
+export SSH_PASS=your-password
+export SSH_PORT=22</code></pre>
+        <pre><code class="language-php">$client->connect(
+    getenv('SSH_HOST'),
+    getenv('SSH_USER'),
+    getenv('SSH_PASS'),
+    getenv('SSH_PORT') ?: 22
+);</code></pre>
+    </section>
+
+    <!-- Laravel -->
+    <section id="laravel-install">
+        <h2>Laravel Integration</h2>
+
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+                <h3>Install the package</h3>
+                <pre><code class="language-bash">composer require codego/php-ksip-telnet</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-env">
+            <div class="step-num">2</div>
+            <div class="step-body">
+                <h3>Add credentials to <code>.env</code></h3>
+                <pre><code class="language-bash2">SSH_HOST=your-server-ip
+SSH_USER=root
+SSH_PASS=your-password
+SSH_PORT=22
+SSH_DB_USER=freepbxuser
+SSH_DB_PASS=dbpassword</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-service">
+            <div class="step-num">3</div>
+            <div class="step-body">
+                <h3>Create a Service class</h3>
+                <pre><code class="language-bash">php artisan make:service FreePBXService</code></pre>
+                <pre><code class="language-php">&lt;?php
+
+namespace App\Services;
+
+use KsipTelnet\SSHClient;
+
+class FreePBXService
+{
+    protected SSHClient $client;
+
+    public function __construct()
+    {
+        $this->client = new SSHClient();
+        $this->client->connect(
+            config('services.freepbx.host'),
+            config('services.freepbx.user'),
+            config('services.freepbx.pass'),
+            config('services.freepbx.port', 22)
+        );
+    }
+
+    public function createExtensionKsip(string $ext, string $password): array
+    {
+        return $this->client->createExtensionKsip(
+            $ext, $password,
+            config('services.freepbx.db_user'),
+            config('services.freepbx.db_pass')
+        );
+    }
+
+    public function getExtKsipList(): array
+    {
+        return $this->client->getExtKsipList(
+            config('services.freepbx.db_user'),
+            config('services.freepbx.db_pass')
+        );
+    }
+
+    public function genExtKsip(array $data): array
+    {
+        return $this->client->genExtKsip(
+            $data,
+            config('services.freepbx.db_user'),
+            config('services.freepbx.db_pass')
+        );
+    }
+
+    public function exec(string $command): string
+    {
+        return $this->client->exec($command);
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-config">
+            <div class="step-num">4</div>
+            <div class="step-body">
+                <h3>Register in <code>config/services.php</code></h3>
+                <pre><code class="language-php">'freepbx' => [
+    'host'    => env('SSH_HOST'),
+    'user'    => env('SSH_USER'),
+    'pass'    => env('SSH_PASS'),
+    'port'    => env('SSH_PORT', 22),
+    'db_user' => env('SSH_DB_USER'),
+    'db_pass' => env('SSH_DB_PASS'),
+],</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-provider">
+            <div class="step-num">5</div>
+            <div class="step-body">
+                <h3>Bind in <code>AppServiceProvider</code></h3>
+                <pre><code class="language-php">use App\Services\FreePBXService;
+
+public function register(): void
+{
+    $this->app->singleton(FreePBXService::class);
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-controller">
+            <div class="step-num">6</div>
+            <div class="step-body">
+                <h3>Use in a Controller</h3>
+                <pre><code class="language-bash">php artisan make:controller ExtensionController</code></pre>
+                <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers;
+
+use App\Services\FreePBXService;
+use Illuminate\Http\Request;
+
+class ExtensionController extends Controller
+{
+    public function __construct(protected FreePBXService $freepbx) {}
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'extension' => 'required|numeric',
+            'password'  => 'required|string',
+        ]);
+
+        return response()->json(
+            $this->freepbx->createExtensionKsip($request->extension, $request->password)
+        );
+    }
+
+    public function index()
+    {
+        return response()->json($this->freepbx->getExtKsipList());
+    }
+
+    public function generate(Request $request)
+    {
+        $request->validate([
+            'extName'  => 'required|numeric',
+            'password' => 'nullable|string',
+        ]);
+
+        return response()->json(
+            $this->freepbx->genExtKsip($request->only('extName', 'password'))
+        );
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-routes">
+            <div class="step-num">7</div>
+            <div class="step-body">
+                <h3>Add routes in <code>routes/api.php</code></h3>
+                <pre><code class="language-php">use App\Http\Controllers\ExtensionController;
+
+Route::get('/extensions', [ExtensionController::class, 'index']);
+Route::post('/extensions', [ExtensionController::class, 'store']);
+Route::post('/extensions/generate', [ExtensionController::class, 'generate']);</code></pre>
+            </div>
+        </div>
+
+        <div class="step" id="laravel-api">
+            <div class="step-num">8</div>
+            <div class="step-body">
+                <h3>Test via API</h3>
+                <pre><code class="language-bash2">curl -X POST http://your-app.com/api/extensions \
+  -H "Content-Type: application/json" \
+  -d '{"extension": "1001", "password": "secret123"}'</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- make:ksip-config -->
+    <section id="make-ksip-config">
+        <h2>make:ksip-config &mdash; Per-User Softphone Settings</h2>
+        <p>Generates a migration, model, controller, and API routes so each authenticated user can save and retrieve their own softphone configuration from the database.</p>
+
+        <pre><code class="language-bash">php artisan make:ksip-config
+php artisan migrate</code></pre>
+
+        <h3>What it generates</h3>
+        <ul>
+            <li><code>database/migrations/{timestamp}_create_softphone_configs_table.php</code></li>
+            <li><code>app/Models/SoftphoneConfig.php</code></li>
+            <li><code>app/Http/Controllers/Api/SoftphoneConfigController.php</code></li>
+            <li>Appends routes to <code>routes/api.php</code></li>
+        </ul>
+
+        <h3>Migration Schema</h3>
+        <pre><code class="language-php">Schema::create('softphone_configs', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+    // SIP Connection
+    $table->string('server')->nullable();
+    $table->enum('ws_protocol', ['ws', 'wss'])->default('ws');
+    $table->string('ws_port')->default('8088');
+    $table->string('extension')->nullable();
+    $table->string('password')->nullable();
+    $table->string('display_name')->nullable();
+
+    // Codecs
+    $table->json('audio_codecs')->nullable();
+    $table->json('video_codecs')->nullable();
+
+    // UI Toggles
+    $table->boolean('enabled_bubble')->default(true);
+    $table->boolean('show_dialer')->default(true);
+    $table->boolean('show_setting')->default(true);
+    $table->boolean('show_opacity')->default(true);
+    $table->boolean('answer_with_video_call')->default(false);
+    $table->boolean('show_incoming_call_video_btn')->default(true);
+    $table->boolean('show_incoming_call_audio')->default(true);
+    $table->boolean('fullscreen')->default(false);
+
+    // Recording
+    $table->boolean('auto_record')->default(false);
+    $table->string('recording_dir')->default('video/recordings/Ksip');
+    $table->string('upload_api_url')->nullable();
+
+    // Position
+    $table->integer('position_top')->nullable();
+    $table->integer('position_bottom')->nullable();
+    $table->integer('position_left')->nullable();
+    $table->integer('position_right')->nullable();
+
+    $table->unique('user_id'); // one config per user
+    $table->timestamps();
+});</code></pre>
+
+        <h3>Generated API Routes</h3>
+        <pre><code class="language-php">Route::middleware(['auth:sanctum,web'])->group(function () {
+    Route::get('/softphone-config',  [SoftphoneConfigController::class, 'show']);
+    Route::post('/softphone-config', [SoftphoneConfigController::class, 'save']);
+});</code></pre>
+
+        <table>
+            <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><span class="method-badge method-get">GET</span></td>
+                    <td><code>/api/softphone-config</code></td>
+                    <td>Get the authenticated user's config</td>
+                </tr>
+                <tr>
+                    <td><span class="method-badge method-post">POST</span></td>
+                    <td><code>/api/softphone-config</code></td>
+                    <td>Save / update the authenticated user's config</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Save Config Example</h3>
+        <pre><code class="language-bash2">curl -X POST http://your-app.com/api/softphone-config \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "server": "192.168.1.100",
+    "ws_protocol": "ws",
+    "ws_port": "8088",
+    "extension": "1001",
+    "password": "mypassword",
+    "display_name": "Juan Luna",
+    "audio_codecs": ["PCMU", "PCMA"],
+    "video_codecs": ["VP8", "H264"],
+    "auto_record": true
+  }'</code></pre>
+
+        <h3>React Integration &mdash; <code>configApiUrl</code> prop</h3>
+        <p>Pass the API endpoint and Bearer token to the <code>Softphone</code> component. It fetches the user's saved config on mount and falls back to built-in defaults if the API returns <code>null</code>.</p>
+        <pre><code class="language-jsx">&lt;Softphone
+  configApiUrl="/api/softphone-config"
+  configApiToken={userToken}
+/&gt;</code></pre>
+
+        <div class="alert">If the API returns <code>{ "data": null }</code> (no saved config yet), the component automatically uses its built-in default values &mdash; no extra setup needed.</div>
+
+        <h3>API Response Format</h3>
+        <pre><code class="language-json">{
+  "data": {
+    "id": 1,
+    "user_id": 42,
+    "server": "192.168.1.100",
+    "ws_protocol": "ws",
+    "ws_port": "8088",
+    "extension": "1001",
+    "password": "mypassword",
+    "display_name": "Juan Luna",
+    "audio_codecs": ["PCMU", "PCMA"],
+    "video_codecs": ["VP8", "H264"],
+    "enabled_bubble": true,
+    "show_dialer": true,
+    "show_setting": true,
+    "show_opacity": true,
+    "answer_with_video_call": false,
+    "show_incoming_call_video_btn": true,
+    "show_incoming_call_audio": true,
+    "fullscreen": false,
+    "auto_record": true,
+    "recording_dir": "video/recordings/Ksip",
+    "upload_api_url": null,
+    "position_top": null,
+    "position_bottom": 20,
+    "position_left": null,
+    "position_right": 20
+  }
+}</code></pre>
+    </section>
+
+    <!-- make:ksip -->
+    <section id="make-ksip">
+        <h2>make:ksip — Create Extension via CLI</h2>
+        <p>Create a FreePBX PJSIP extension directly from the terminal without writing any PHP code.</p>
+
+        <pre><code class="language-bash">php artisan make:ksip --extension="1001" --name="Juan Luna" --secret="mypassword"</code></pre>
+
+        <p><code>--secret</code> is optional. If omitted, the extension number is used as the password automatically.</p>
+
+        <pre><code class="language-bash">php artisan make:ksip --extension="1001" --name="Juan Luna"
+# Password defaults to: 1001</code></pre>
+
+        <h3>Options</h3>
+        <table>
+            <thead><tr><th>Option</th><th>Required</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>--extension</code></td><td>&#10003; Yes</td><td>The PJSIP extension number</td></tr>
+                <tr><td><code>--name</code></td><td>&#10003; Yes</td><td>Display name / Caller ID</td></tr>
+                <tr><td><code>--secret</code></td><td>&#10007; No</td><td>SIP password (defaults to extension number)</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Prerequisites</h3>
+        <p>Make sure <code>config/services.php</code> has the <code>freepbx</code> block and your <code>.env</code> is set:</p>
+        <pre><code class="language-bash2">SSH_HOST=your-server-ip
+SSH_USER=root
+SSH_PASS=your-password
+SSH_PORT=22
+SSH_DB_USER=freepbxuser
+SSH_DB_PASS=dbpassword</code></pre>
+        <pre><code class="language-php">'freepbx' => [
+    'host'    => env('SSH_HOST'),
+    'user'    => env('SSH_USER'),
+    'pass'    => env('SSH_PASS'),
+    'port'    => env('SSH_PORT', 22),
+    'db_user' => env('SSH_DB_USER'),
+    'db_pass' => env('SSH_DB_PASS'),
+],</code></pre>
+    </section>
+
+    <!-- ksipRegisterUser -->
+    <section id="ksip-register-user">
+        <h2>Auto Extension Registration</h2>
+        <p>Automatically generates a unique 12-digit extension number from a user's name acronym + birthdate, then registers it in FreePBX. Can run as a cron job <em>or</em> be called directly from a controller.</p>
+
+        <h3>Extension Number Formula</h3>
+        <p>Each initial letter is converted to its alphabet position (A=01 … Z=26, zero-padded to 2 digits), then the birthdate is appended as <code>mmddyy</code>. If the total is less than 12 digits, random digits fill the remainder.</p>
+
+        <table>
+            <thead><tr><th>Part</th><th>Example</th><th>Result</th></tr></thead>
+            <tbody>
+                <tr><td>Last name initial — L (12th letter)</td><td>Luna</td><td><code>12</code></td></tr>
+                <tr><td>First name initial — J (10th letter)</td><td>Juan</td><td><code>10</code></td></tr>
+                <tr><td>Middle name initial — M (13th letter)</td><td>Mercado</td><td><code>13</code></td></tr>
+                <tr><td>Birthdate (mmddyy)</td><td>12/16/1996</td><td><code>121696</code></td></tr>
+                <tr><td><strong>Final Extension</strong></td><td></td><td><code><strong>121013121696</strong></code></td></tr>
+            </tbody>
+        </table>
+
+        <div class="alert">If the generated number is shorter than 12 digits (e.g. short names), random digits are appended automatically until it reaches exactly 12 digits.</div>
+
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+                <h3>Scaffold the cron job</h3>
+                <pre><code class="language-bash">php artisan make:ksip-register-user</code></pre>
+                <p>Generates <code>app/Console/Commands/AssignExtensionToUsers.php</code> and appends the schedule entry to <code>routes/console.php</code>.</p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+                <h3>Add to <code>.env</code></h3>
+                <pre><code class="language-bash2">SSH_HOST=your-server-ip
+SSH_USER=root
+SSH_PASS=your-password
+SSH_PORT=22
+SSH_DB_USER=freepbxuser
+SSH_DB_PASS=dbpassword</code></pre>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+                <h3>Run the scheduler</h3>
+                <pre><code class="language-bash"># Run once manually
+php artisan ksip:assign-extensions
+
+# Or let the scheduler handle it every minute
+php artisan schedule:run</code></pre>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num" style="background:#1a7f37">&#9881;</div>
+            <div class="step-body">
+                <h3>Production: Auto-run via Supervisor</h3>
+                <p>In production, use <strong>Supervisor</strong> to keep the scheduler running automatically — no need to manually trigger it every minute.</p>
+
+                <h3>1. Install Supervisor</h3>
+                <pre><code class="language-bash">sudo apt install supervisor</code></pre>
+
+                <h3>2. Create config file</h3>
+                <pre><code class="language-bash">sudo nano /etc/supervisor/conf.d/laravel-scheduler.conf</code></pre>
+                <pre><code class="language-bash2">[program:laravel-scheduler]
+process_name=%(program_name)s
+command=bash -c "while true; do php /var/www/your-project/artisan schedule:run; sleep 60; done"
+autostart=true
+autorestart=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/www/your-project/storage/logs/scheduler.log</code></pre>
+
+                <div class="alert">Replace <code>/var/www/your-project</code> with your actual project path and <code>www-data</code> with your server user (e.g. <code>ubuntu</code>, <code>forge</code>, <code>deployer</code>).</div>
+
+                <h3>3. Start Supervisor</h3>
+                <pre><code class="language-bash">sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start laravel-scheduler</code></pre>
+
+                <h3>4. Check status</h3>
+                <pre><code class="language-bash">sudo supervisorctl status laravel-scheduler</code></pre>
+
+                <p>Supervisor will automatically restart the scheduler if the server reboots or the process crashes. Logs are written to <code>storage/logs/scheduler.log</code>.</p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+                <h3>Call directly from a Registration Controller</h3>
+                <p>Use <code>SSHClient::ksipRegisterUser()</code> to assign an extension immediately on user registration — no need to wait for the cron job.</p>
+                <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use KsipTelnet\SSHClient;
+
+class RegisterController extends Controller
+{
+    public function register(Request $request)
+    {
+        $request->validate([
+            'first_name'  => 'required|string',
+            'last_name'   => 'required|string',
+            'middle_name' => 'nullable|string',
+            'birth_date'  => 'required|date',
+            'email'       => 'required|email|unique:users',
+            'password'    => 'required|min:8|confirmed',
+        ]);
+
+        $user = User::create([
+            'first_name'  => $request->first_name,
+            'last_name'   => $request->last_name,
+            'middle_name' => $request->middle_name,
+            'birth_date'  => $request->birth_date,
+            'email'       => $request->email,
+            'password'    => bcrypt($request->password),
+        ]);
+
+        $ssh = new SSHClient();
+        $ssh->connect(
+            config('services.freepbx.host'),
+            config('services.freepbx.user'),
+            config('services.freepbx.pass'),
+            config('services.freepbx.port', 22)
+        );
+
+        $result = SSHClient::ksipRegisterUser(
+            $user,
+            $ssh,
+            config('services.freepbx.db_user'),
+            config('services.freepbx.db_pass')
+        );
+
+        return response()->json([
+            'user'      => $user,
+            'extension' => $result['extension'],
+            'status'    => $result['status'],
+        ], 201);
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <h3>Generate Extension Number Only (no SSH)</h3>
+        <pre><code class="language-php">use KsipTelnet\SSHClient;
+
+$ext = SSHClient::generateExtensionFromUser(
+    'Luna',      // last_name
+    'Juan',      // first_name
+    'Mercado',   // middle_name
+    '12/16/1996' // birth_date
+);
+
+// $ext → '121013121696'</code></pre>
+
+        <h3>Return Values of <code>ksipRegisterUser</code></h3>
+        <table>
+            <thead><tr><th>status</th><th>Meaning</th></tr></thead>
+            <tbody>
+                <tr><td><code>assigned</code></td><td>Extension generated and registered in FreePBX</td></tr>
+                <tr><td><code>skipped</code></td><td>User already has an <code>extensionName</code></td></tr>
+                <tr><td><code>error</code></td><td>Missing name or birthdate fields</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Artisan -->
+    <section id="ksipgen">
+        <h2>Artisan Scaffold Generator</h2>
+        <p>The package includes a <code>make:ksipgen</code> command that auto-generates call recording scaffold files in your Laravel project connects to <b style="color: #3fec4b;">KSIP (juv-ksip-softphone)</b> just install reacr ksip <code>juv-ksip-softphone</code>.</p>
+
+        <h3>Install React KSIP</h3>
+        <pre><code class="language-bash">npm i juv-ksip-softphone@latest</code></pre>
+        
+        <h3>What it generates</h3>
+        <ul>
+            <li><code>app/Http/Controllers/Api/CallRecordingController.php</code></li>
+            <li><code>database/migrations/{timestamp}_create_call_recordings_table.php</code></li>
+            <li>Appends routes to <code>routes/api.php</code></li>
+        </ul>
+
+        <h3>Usage</h3>
+        <pre><code class="language-bash">php artisan make:ksipgen
+php artisan migrate</code></pre>
+
+        <h3>Generated Routes</h3>
+        <pre><code class="language-php">Route::prefix('recordings')->group(function () {
+    Route::post('/upload', [CallRecordingController::class, 'upload']);
+    Route::get('/', [CallRecordingController::class, 'index']);
+    Route::get('/{id}', [CallRecordingController::class, 'show']);
+    Route::get('/{id}/download', [CallRecordingController::class, 'download']);
+    Route::delete('/{id}', [CallRecordingController::class, 'delete']);
+});</code></pre>
+
+        <h3>Upload Example</h3>
+        <pre><code class="language-bash2">curl -X POST http://your-app.com/api/recordings/upload \
+  -F "file=@/path/to/recording.wav" \
+  -F "caller=1001" \
+  -F "callee=1002" \
+  -F "duration=60"</code></pre>
+
+        <h3>Migration Schema</h3>
+        <pre><code class="language-php">Schema::create('call_recordings', function (Blueprint $table) {
+    $table->id();
+    $table->string('filename');
+    $table->string('path');
+    $table->string('caller')->nullable();
+    $table->string('callee')->nullable();
+    $table->integer('duration')->nullable();
+    $table->timestamps();
+});</code></pre>
+    </section>
+
+    <!-- Endpoints -->
+    <section id="endpoints">
+        <h2>Available API Endpoints</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="method-badge method-get">GET</span></td>
+                    <td><code>/api/recordings</code></td>
+                    <td>List all recordings</td>
+                </tr>
+                <tr>
+                    <td><span class="method-badge method-post">POST</span></td>
+                    <td><code>/api/recordings/upload</code></td>
+                    <td>Upload a recording (mp3/wav/ogg)</td>
+                </tr>
+                <tr>
+                    <td><span class="method-badge method-get">GET</span></td>
+                    <td><code>/api/recordings/{id}</code></td>
+                    <td>Get a single recording</td>
+                </tr>
+                <tr>
+                    <td><span class="method-badge method-get">GET</span></td>
+                    <td><code>/api/recordings/{id}/download</code></td>
+                    <td>Download a recording</td>
+                </tr>
+                <tr>
+                    <td><span class="method-badge method-del">DELETE</span></td>
+                    <td><code>/api/recordings/{id}</code></td>
+                    <td>Delete a recording</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- SipController -->
+    <section id="sip-controller">
+        <h2>SipController — Artisan Command Integration</h2>
+        <p>Create extensions via HTTP API by calling the <code>make:ksip</code> Artisan command from a controller.</p>
+
+        <h3>Controller Implementation</h3>
+        <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+
+class SipController extends Controller
+{
+    public function createExtension(Request $request)
+    {
+        $request-&gt;validate([
+            'extension' =&gt; 'required|string',
+            'name'      =&gt; 'required|string',
+            'secret'    =&gt; 'required|string',
+        ]);
+
+        // Call the Artisan command
+        $exitCode = Artisan::call('make:ksip', [
+            '--extension' =&gt; $request-&gt;extension,
+            '--name'      =&gt; $request-&gt;name,
+            '--secret'    =&gt; $request-&gt;secret,
+        ]);
+
+        // Get the output of the command
+        $output = Artisan::output();
+
+        if ($exitCode === 0) {
+            return response()-&gt;json([
+                'success' =&gt; true,
+                'message' =&gt; "Extension {$request-&gt;extension} created successfully!",
+                'output'  =&gt; $output,
+            ], 201);
+        }
+
+        return response()-&gt;json([
+            'success' =&gt; false,
+            'message' =&gt; 'Failed to create extension',
+            'output'  =&gt; $output,
+        ], 500);
+    }
+}</code></pre>
+
+        <h3>Route Registration</h3>
+        <pre><code class="language-php">// routes/api.php
+Route::post('/sip/create-extension', [SipController::class, 'createExtension']);</code></pre>
+
+        <h3>API Usage</h3>
+        <pre><code class="language-bash2">curl -X POST http://your-app.com/api/sip/create-extension \
+  -H "Content-Type: application/json" \
+  -d '{
+    "extension": "1001",
+    "name": "Juan Luna",
+    "secret": "mypassword"
+  }'</code></pre>
+    </section>
+
+    <!-- License -->
+    <section id="license">
+        <h2>License</h2>
+        <p>This package is open-sourced software licensed under the <strong>MIT license</strong>.</p>
+    </section>
+
+    <!-- ========== juv-ksip-softphone ========== -->
+    <section id="sp-intro">
+        <h1 style="margin-top:40px">juv-ksip-softphone</h1>
+        <p>A professional, draggable, resizable, transparent React WebRTC SIP softphone component for FreePBX / Asterisk. Supports audio and video calls, incoming call handling, codec selection, and a global <code>ksipcall</code> API for triggering calls from anywhere in your app.</p>
+        <div>
+            <span class="badge" style="background:#1a7f3722;border-color:#1a7f3744;color:#3fb950">React</span>
+            <span class="badge" style="background:#1a7f3722;border-color:#1a7f3744;color:#3fb950">WebRTC</span>
+            <span class="badge" style="background:#1a7f3722;border-color:#1a7f3744;color:#3fb950">SIP</span>
+            <span class="badge">MIT License</span>
+            <span class="badge">npm</span>
+        </div>
+        <h3>How does it work?</h3>
+        <p>The component connects to your FreePBX/Asterisk server via WebSocket SIP (<code>ws://</code> port <code>8088</code> or <code>wss://</code> port <code>8089</code>). Once registered, WebRTC handles audio/video streams natively in the browser — no plugins needed.</p>
+        <pre><code class="language-bash">Browser  ──WebSocket──▶  FreePBX/Asterisk  ──SIP──▶  Other Phone
+           (SIP/WS)           (PBX)
+Browser  ◀──WebRTC──▶   FreePBX/Asterisk  ◀──RTP──▶  Other Phone
+           (Audio/Video)      (Media)</code></pre>
+
+        <h3>Screenshots</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+            <img src="https://raw.githubusercontent.com/kitenebie/SoftPhone-FreePBX/main/src/assets/image_1.png" style="width:48%;border-radius:8px;border:1px solid #30363d" alt="Settings Panel" />
+            <img src="https://raw.githubusercontent.com/kitenebie/SoftPhone-FreePBX/main/src/assets/image_2.png" style="width:48%;border-radius:8px;border:1px solid #30363d" alt="Incoming Call" />
+            <img src="https://raw.githubusercontent.com/kitenebie/SoftPhone-FreePBX/main/src/assets/image_3.png" style="width:48%;border-radius:8px;border:1px solid #30363d" alt="Video Call" />
+            <img src="https://raw.githubusercontent.com/kitenebie/SoftPhone-FreePBX/main/src/assets/image_4.png" style="width:48%;border-radius:8px;border:1px solid #30363d" alt="Dialer" />
+            <img src="https://raw.githubusercontent.com/kitenebie/SoftPhone-FreePBX/main/src/assets/image_5.png" style="width:48%;border-radius:8px;border:1px solid #30363d" alt="Fullscreen" />
+        </div>
+
+        <h3>Features</h3>
+        <ul>
+            <li>🎙 Audio &amp; video calls via WebRTC + SIP (FreePBX / Asterisk)</li>
+            <li>📞 Incoming call notifications with accept/reject</li>
+            <li>🪟 Draggable + resizable floating video panel (expandable to fullscreen)</li>
+            <li>🔢 Draggable dialpad panel</li>
+            <li>💾 Auto-saves config to <code>localStorage</code> and auto-connects on reload</li>
+            <li>🔄 Auto-reconnects on WebSocket disconnect</li>
+            <li>🌐 Transparent background — overlays any existing app</li>
+            <li>📡 Global <code>ksipcall</code> API — trigger calls from plain JS or any framework</li>
+            <li>🔒 ws:// / wss:// protocol selector</li>
+            <li>🎚 Audio &amp; video codec selection</li>
+            <li>🔔 Ringtones for incoming and end call</li>
+            <li>⏱ Status toast notification with real-time connection state</li>
+            <li>⌨️ Keyboard shortcut (Ctrl+Shift+K) to toggle settings</li>
+        </ul>
+    </section>
+
+    <section id="sp-install">
+        <h2>Installation</h2>
+        <pre><code class="language-bash">npm install juv-ksip-softphone</code></pre>
+    </section>
+
+    <section id="sp-quickstart">
+        <h2>Quick Start</h2>
+        <pre><code class="language-jsx">import { Softphone } from 'juv-ksip-softphone';
+import 'juv-ksip-softphone/styles';
+
+function App() {
+  return (
+    &lt;&gt;
+      &lt;YourExistingApp /&gt;
+      &lt;Softphone /&gt;
+    &lt;/&gt;
+  );
+}</code></pre>
+        <p>The softphone renders as a transparent overlay with a floating phone button (top-right). Click it to open the nav menu.</p>
+    </section>
+
+    <section id="sp-props">
+        <h2>Props</h2>
+        <h3>SIP Connection Props</h3>
+        <table>
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>server</code></td><td>string</td><td><code>""</code></td><td>FreePBX server IP or hostname</td></tr>
+                <tr><td><code>wsProtocol</code></td><td>ws | wss</td><td><code>"ws"</code></td><td>WebSocket protocol</td></tr>
+                <tr><td><code>wsPort</code></td><td>string</td><td><code>"8088"</code></td><td>WebSocket port</td></tr>
+                <tr><td><code>extension</code></td><td>string</td><td><code>""</code></td><td>SIP extension number</td></tr>
+                <tr><td><code>password</code></td><td>string</td><td><code>""</code></td><td>SIP extension password</td></tr>
+                <tr><td><code>displayName</code></td><td>string</td><td><code>""</code></td><td>Caller ID display name</td></tr>
+            </tbody>
+        </table>
+        <h3>Recording Props</h3>
+        <table>
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>autoRecord</code></td><td>boolean</td><td><code>false</code></td><td>Enable automatic recording of all calls</td></tr>
+                <tr><td><code>recordingDir</code></td><td>string</td><td><code>"video/recordings/Ksip"</code></td><td>Directory path for saved recordings</td></tr>
+                <tr><td><code>uploadApiUrl</code></td><td>string</td><td><code>""</code></td><td>API endpoint URL for uploading recordings</td></tr>
+            </tbody>
+        </table>
+        <h3>Settings Configuration Props</h3>
+        <table>
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>settingConfigToggles</code></td><td>object</td><td>all <code>true</code></td><td>Controls which toggles are visible in settings UI</td></tr>
+                <tr><td><code>settingConfigTogglesActiveState</code></td><td>object</td><td>varies</td><td>Sets initial active state for toggles</td></tr>
+                <tr><td><code>settingConfigCodecs</code></td><td>object</td><td>all visible</td><td>Controls codec visibility and available options</td></tr>
+            </tbody>
+        </table>
+        <h3>UI Props</h3>
+        <table>
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>enabledBubble</code></td><td>boolean</td><td><code>true</code></td><td>Show or hide the entire softphone bubble</td></tr>
+                <tr><td><code>showDialer</code></td><td>boolean</td><td><code>true</code></td><td>Show the dialer button in the FAB nav</td></tr>
+                <tr><td><code>showSetting</code></td><td>boolean</td><td><code>true</code></td><td>Show the settings button in the FAB nav</td></tr>
+                <tr><td><code>showOpacity</code></td><td>boolean</td><td><code>true</code></td><td>Show the opacity button in the FAB nav</td></tr>
+                <tr><td><code>answerwithVideoCall</code></td><td>boolean</td><td><code>false</code></td><td>Auto-answer incoming calls with video</td></tr>
+                <tr><td><code>ShowIncomingCallVideoBtn</code></td><td>boolean</td><td><code>true</code></td><td>Show the video answer button on incoming calls</td></tr>
+                <tr><td><code>ShowIncomingCallAudio</code></td><td>boolean</td><td><code>true</code></td><td>Show the audio answer button on incoming calls</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section id="sp-examples">
+        <h2>Examples</h2>
+        <h3>Basic — manual config via settings panel</h3>
+        <pre><code class="language-jsx">&lt;Softphone /&gt;</code></pre>
+
+        <h3>Pre-configured — auto-connect on load</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  server="192.168.1.100"
+  wsProtocol="ws"
+  wsPort="8088"
+  extension="1001"
+  password="mypassword"
+  displayName="John Doe"
+/&gt;</code></pre>
+
+        <h3>Full configuration</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  server="192.168.1.100"
+  wsProtocol="ws"
+  wsPort="8088"
+  extension="1001"
+  password="mypassword"
+  displayName="John Doe"
+  enabledBubble={true}
+  showDialer={true}
+  showSetting={true}
+  showOpacity={true}
+  answerwithVideoCall={false}
+  ShowIncomingCallVideoBtn={true}
+  ShowIncomingCallAudio={true}
+/&gt;</code></pre>
+
+        <h3>Audio-only mode</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  ShowIncomingCallVideoBtn={false}
+  ShowIncomingCallAudio={true}
+/&gt;</code></pre>
+
+        <h3>wss:// for HTTPS pages</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  server="pbx.yourdomain.com"
+  wsProtocol="wss"
+  wsPort="8089"
+  extension="1001"
+  password="mypassword"
+/&gt;</code></pre>
+
+        <h3>Settings Configuration</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  settingConfigToggles={{
+    bubble: true,
+    dialer: true,
+    settings: false,  // Hide settings toggle
+    opacity: true,
+    autoAnswerVideo: true,
+    answerButtonVideo: false,  // Hide video answer button toggle
+    answerButtonAudio: true,
+    fullscreen: true,
+    autoRecording: true,
+  }}
+  settingConfigTogglesActiveState={{
+    bubble: true,
+    dialer: true,
+    settings: true,
+    opacity: true,
+    autoAnswerVideo: true,  // Start with auto-answer video ON
+    answerButtonVideo: true,
+    answerButtonAudio: false,
+    fullscreen: false,
+    autoRecording: true,  // Start with recording ON
+  }}
+  settingConfigCodecs={{
+    audio: {
+        visible: true, 
+    },  
+    video: {
+        visible: false, 
+    },  
+  }}
+/&gt;</code></pre>
+
+        <h3>Auto Recording with API Upload</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  autoRecord={true}
+  recordingDir="video/recordings/Ksip"
+  uploadApiUrl="https://your-domain.com/api/recordings/upload"
+/&gt;</code></pre>
+
+        <h3>Complete Example with All Features</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  // SIP Connection
+  server="192.168.1.100"
+  wsProtocol="ws"
+  wsPort="8088"
+  extension="1001"
+  password="mypassword"
+  displayName="John Doe"
+  
+  // UI Controls
+  enabledBubble={true}
+  showDialer={true}
+  showSetting={true}
+  showOpacity={true}
+  answerwithVideoCall={false}
+  ShowIncomingCallVideoBtn={true}
+  ShowIncomingCallAudio={true}
+  fullscreen={false}
+  
+  // Recording
+  autoRecord={true}
+  recordingDir="video/recordings/Ksip"
+  uploadApiUrl="https://your-domain.com/api/recordings/upload"
+  
+  // Settings Configuration
+  settingConfigToggles={{
+    bubble: true,
+    dialer: true,
+    settings: true,
+    opacity: true,
+    autoAnswerVideo: true,
+    answerButtonVideo: true,
+    answerButtonAudio: true,
+    fullscreen: true,
+    autoRecording: true,
+  }}
+  settingConfigTogglesActiveState={{
+    bubble: true,
+    dialer: true,
+    settings: true,
+    opacity: true,
+    autoAnswerVideo: false,
+    answerButtonVideo: true,
+    answerButtonAudio: true,
+    fullscreen: false,
+    autoRecording: true,
+  }}
+  settingConfigCodecs={{
+    audio: { visible: true, codecs: ["PCMU", "PCMA", "opus"] },
+    video: { visible: true, codecs: ["VP8", "H264"] },
+  }}
+/&gt;</code></pre>
+    </section>
+
+    <section id="sp-ksipcall">
+        <h2>ksipcall API</h2>
+        <p>The <code>ksipcall</code> global lets you trigger calls from anywhere — plain JavaScript, Vue, Angular, or any other framework.</p>
+
+        <h3>Audio Call</h3>
+        <pre><code class="language-js">ksipcall.audio("123");</code></pre>
+
+        <h3>Video Call</h3>
+        <pre><code class="language-js">ksipcall.video("123");</code></pre>
+
+        <h3>Via window (plain HTML)</h3>
+        <pre><code class="language-html">&lt;button onclick="ksipcall.audio('123')"&gt;Call Support&lt;/button&gt;
+&lt;button onclick="ksipcall.video('456')"&gt;Video Call&lt;/button&gt;</code></pre>
+
+        <h3>Import in React</h3>
+        <pre><code class="language-js">import { ksipcall } from 'juv-ksip-softphone';
+
+ksipcall.audio("123");
+ksipcall.video("123");</code></pre>
+    </section>
+
+    <section id="sp-settings">
+        <h2>Settings Panel</h2>
+        <p>The in-app settings panel (accessible via the ⚙ button) has a 3-column layout.</p>
+        <h3>Column 1 — SIP Configuration</h3>
+        <table>
+            <thead><tr><th>Field</th><th>Description</th><th>Example</th></tr></thead>
+            <tbody>
+                <tr><td>FreePBX Server IP</td><td>IP or hostname</td><td><code>192.168.1.100</code></td></tr>
+                <tr><td>Extension</td><td>SIP extension number</td><td><code>1001</code></td></tr>
+                <tr><td>Password</td><td>Extension SIP password</td><td><code>mypassword</code></td></tr>
+                <tr><td>Display Name</td><td>Caller ID name (optional)</td><td><code>John Doe</code></td></tr>
+                <tr><td>Protocol</td><td>ws:// or wss://</td><td><code>ws://</code></td></tr>
+                <tr><td>Port</td><td>WebSocket port</td><td><code>8088</code></td></tr>
+            </tbody>
+        </table>
+        <h3>Column 2 — Codecs</h3>
+        <p><strong>Audio:</strong> PCMU, PCMA, G722, G729, opus</p>
+        <p><strong>Video:</strong> VP8, VP9, H264, H265, AV1</p>
+        <h3>Column 3 — UI Preferences</h3>
+        <ul>
+            <li>Show Bubble</li>
+            <li>Show Dialer Button</li>
+            <li>Show Settings Button</li>
+            <li>Show Opacity Button</li>
+            <li>Answer with Video</li>
+            <li>Show Video Answer Button</li>
+            <li>Show Audio Answer Button</li>
+        </ul>
+    </section>
+
+    <section id="sp-cdn">
+        <h2>CDN Usage (Browser)</h2>
+        <p>Use directly in the browser via CDN — no build tools required.</p>
+        <h3>1. Include scripts</h3>
+        <pre><code class="language-html">&lt;!-- Styles --&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/juv-ksip-softphone@1.0.35/dist/juv-ksip-softphone.css"&gt;
+
+&lt;!-- Softphone bundle --&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/juv-ksip-softphone@1.0.35/dist/juv-ksip-softphone.cdn.js"&gt;&lt;/script&gt;</code></pre>
+
+        <h3>2. Mount the softphone</h3>
+        <pre><code class="language-html">&lt;div id="softphone"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  const { Softphone, createRoot, createElement } = window.JuvKsipSoftphone;
+  createRoot(document.getElementById('softphone')).render(
+    createElement(Softphone, {
+      server: "192.168.1.100",
+      wsProtocol: "ws",
+      wsPort: "8088",
+      extension: "1001",
+      password: "mypassword",
+      displayName: "John Doe"
+    })
+  );
+&lt;/script&gt;</code></pre>
+
+        <h3>3. Trigger calls via ksipcall (CDN)</h3>
+        <pre><code class="language-html">&lt;button onclick="window.ksipcall.audio('1002')"&gt;Audio Call&lt;/button&gt;
+&lt;button onclick="window.ksipcall.video('1002')"&gt;Video Call&lt;/button&gt;</code></pre>
+    </section>
+
+    <section id="sp-websocket">
+        <h2>WebSocket Protocol</h2>
+        <table>
+            <thead><tr><th>Protocol</th><th>Port</th><th>Use Case</th></tr></thead>
+            <tbody>
+                <tr><td><code>ws://</code></td><td><code>8088</code></td><td>Local network, HTTP pages</td></tr>
+                <tr><td><code>wss://</code></td><td><code>8089</code></td><td>Production, HTTPS pages (requires SSL cert on FreePBX)</td></tr>
+            </tbody>
+        </table>
+        <div class="alert">Browsers block <code>ws://</code> when the page is served over <code>https://</code>. Use <code>wss://</code> with a valid SSL certificate for production.</div>
+    </section>
+
+    <section id="sp-freepbx">
+        <h2>FreePBX / Asterisk Requirements</h2>
+        <p>For WebRTC to work, each SIP extension must have these settings:</p>
+        <table>
+            <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+            <tbody>
+                <tr><td><code>webrtc</code></td><td>yes</td></tr>
+                <tr><td><code>use_avpf</code></td><td>yes</td></tr>
+                <tr><td><code>media_encryption</code></td><td>dtls</td></tr>
+                <tr><td><code>ice_support</code></td><td>yes</td></tr>
+                <tr><td><code>bundle</code></td><td>yes</td></tr>
+                <tr><td><code>rtcp_mux</code></td><td>yes</td></tr>
+                <tr><td><code>dtls_setup</code></td><td>actpass</td></tr>
+            </tbody>
+        </table>
+        <h3>Enable via CLI</h3>
+        <pre><code class="language-ini">[1001](+)
+webrtc=yes</code></pre>
+        <pre><code class="language-bash">asterisk -rx "pjsip reload"</code></pre>
+    </section>
+
+    <section id="sp-recording">
+        <h2>Auto Recording</h2>
+        <p>The softphone supports automatic recording of audio and video calls with configurable save directory and API upload.</p>
+        <ul>
+            <li>✅ Auto-record toggle in settings panel</li>
+            <li>✅ Configurable recording directory</li>
+            <li>✅ Saves as WebM format</li>
+            <li>✅ Automatic download after call ends</li>
+            <li>✅ Optional API upload with duplicate prevention</li>
+            <li>✅ Filename format: <code>{ISO-timestamp}.webm</code></li>
+        </ul>
+        <h3>Basic Usage</h3>
+        <pre><code class="language-jsx">&lt;Softphone autoRecord={true} /&gt;</code></pre>
+        <h3>Custom Directory</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  autoRecord={true}
+  recordingDir="video/recordings/Ksip"
+/&gt;</code></pre>
+        <h3>With API Upload</h3>
+        <pre><code class="language-jsx">&lt;Softphone
+  autoRecord={true}
+  recordingDir="video/recordings/Ksip"
+  uploadApiUrl="https://your-domain.com/api/recordings/upload"
+/&gt;</code></pre>
+        <h3>How It Works</h3>
+        <ol>
+            <li>When auto-record is enabled, a modal prompts user to select a directory</li>
+            <li>Browser's File System Access API creates <code>video/recordings/Ksip/</code> folder structure</li>
+            <li>Recordings save directly to selected folder without download prompts</li>
+            <li>If API URL is configured, uploads to server (once per day to prevent duplicates)</li>
+            <li>Browser remembers directory permission for future recordings</li>
+        </ol>
+        <h3>Convert to MP3</h3>
+        <pre><code class="language-bash">ffmpeg -i recording.webm -vn -ar 44100 -ac 2 -b:a 192k output.mp3</code></pre>
+    </section>
+
+    <section id="sp-localstorage">
+        <h2>localStorage</h2>
+        <p>Config is automatically saved under the key <code>sip_softphone_config</code> and restored on next page load, including SIP credentials, WebSocket settings, codecs, recording settings, and UI preferences.</p>
+        <div class="alert"><code>showSetting</code> is <strong>never saved</strong> to localStorage — it is always controlled by props.</div>
+        <pre><code class="language-json">{
+  "server": "192.168.1.100",
+  "extension": "1001",
+  "password": "mypassword",
+  "displayName": "John Doe",
+  "wsProtocol": "ws",
+  "wsPort": "8088",
+  "audioCodecs": ["PCMU", "PCMA"],
+  "videoCodecs": ["VP8", "H264"],
+  "enabledBubble": true,
+  "showDialer": true,
+  "showOpacity": true,
+  "answerwithVideoCall": false,
+  "ShowIncomingCallVideoBtn": true,
+  "ShowIncomingCallAudio": true,
+  "fullscreen": false,
+  "autoRecord": true,
+  "recordingDir": "video/recordings/Ksip",
+  "uploadApiUrl": "https://api.example.com/upload",
+  "hasDirectoryAccess": true
+}</code></pre>
+
+        <h3>Status Toast Notification</h3>
+        <p>A floating status indicator appears at the top-center of the screen showing the current connection state:</p>
+        <table>
+            <thead><tr><th>Status</th><th>Color</th><th>Behavior</th></tr></thead>
+            <tbody>
+                <tr><td><strong>Connected</strong></td><td>🟢 Green</td><td>Auto-hides after 5 seconds</td></tr>
+                <tr><td><strong>Reconnecting</strong></td><td>🟡 Yellow</td><td>Stays visible until connected</td></tr>
+                <tr><td><strong>Not Connected</strong></td><td>🔴 Red</td><td>Stays visible until connected</td></tr>
+            </tbody>
+        </table>
+        <ul>
+            <li>The status toast includes a settings icon button for quick access to the settings panel</li>
+            <li>Automatically appears when the app loads</li>
+            <li>Shows real-time connection status updates</li>
+            <li>Always visible even when bubble is hidden (can be accessed via <code>Ctrl + Shift + K</code>)</li>
+        </ul>
+
+        <h3>Connection Monitoring</h3>
+        <p>The softphone includes robust connection monitoring to detect server failures:</p>
+        <ul>
+            <li><strong>Automatic Re-registration:</strong> SIP registration refreshes every 10 minutes to maintain active connection</li>
+            <li><strong>Disconnect Detection:</strong> Immediately detects when WebSocket connection is lost</li>
+            <li><strong>Auto-reconnect:</strong> Attempts to reconnect every 3 seconds when connection is lost</li>
+            <li><strong>Unexpected Unregistration:</strong> Automatically attempts to re-register if server rejects registration</li>
+            <li><strong>Long-running Sessions:</strong> Maintains connection health even after hours of being connected without page reload</li>
+        </ul>
+        <div class="alert">
+            <strong>Example Scenario:</strong><br>
+            • App connected at 9:00 AM<br>
+            • Server goes down at 9:30 AM (30 minutes later)<br>
+            • Status toast immediately shows "Reconnecting..." (yellow)<br>
+            • Auto-retry every 3 seconds<br>
+            • When server comes back online → auto-reconnects → "Connected" (green)
+        </div>
+
+        <h3>Keyboard Shortcuts</h3>
+        <table>
+            <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
+            <tbody>
+                <tr><td><code>Ctrl + Shift + K</code></td><td>Toggle settings panel</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+</main>
+
+<script>
+    // Active nav highlight on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('aside nav a');
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(s => {
+            if (window.scrollY >= s.offsetTop - 60) current = s.id;
         });
-    </script>
+        navLinks.forEach(a => {
+            a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+        });
+    });
+</script>
+
 </body>
 </html>
