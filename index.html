@@ -1173,6 +1173,7 @@ function App() {
         <table>
             <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
             <tbody>
+                <tr><td><code>enableFloatingStatus</code></td><td>boolean</td><td><code>true</code></td><td>Show or hide the floating status toast (connected/disconnected)</td></tr>
                 <tr><td><code>enabledBubble</code></td><td>boolean</td><td><code>true</code></td><td>Show or hide the entire softphone bubble</td></tr>
                 <tr><td><code>showDialer</code></td><td>boolean</td><td><code>true</code></td><td>Show the dialer button in the FAB nav</td></tr>
                 <tr><td><code>showSetting</code></td><td>boolean</td><td><code>true</code></td><td>Show the settings button in the FAB nav</td></tr>
@@ -1327,6 +1328,27 @@ function App() {
 /&gt;</code></pre>
     </section>
 
+    <section id="sp-ksipstatus">
+        <h2>ksip.status Component</h2>
+        <p>The <code>&lt;ksip.status /&gt;</code> component allows you to render the SIP connection status inline anywhere in your application. It listens to the global SIP connection state and displays a banner or inline text.</p>
+        <p>By default, if connected, it will show the status for 5 seconds and then hide itself. If disconnected or reconnecting, it stays visible.</p>
+
+        <h3>Usage</h3>
+        <pre><code class="language-jsx">import { Softphone, ksip } from 'juv-ksip-softphone';
+
+function MyHeader() {
+  return (
+    &lt;header&gt;
+      &lt;h1&gt;My Application&lt;/h1&gt;
+      {/* Renders an inline status indicator */}
+      &lt;ksip.status variant="inline" /&gt;
+      
+      {/* Renders a full-width banner */}
+      &lt;ksip.status variant="banner" /&gt;
+    &lt;/header&gt;
+  );
+}</code></pre>
+    </section>
     <section id="sp-ksipcall">
         <h2>ksipcall API</h2>
         <p>The <code>ksipcall</code> global lets you trigger calls from anywhere — plain JavaScript, Vue, Angular, or any other framework.</p>
