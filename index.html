@@ -1571,6 +1571,46 @@ webrtc=yes</code></pre>
         </table>
     </section>
 
+    <section id="sp-backend">
+        <h2>Backend API Example (Laravel)</h2>
+        <p>The softphone automatically fetches caller profile data (avatar, name, age, address, mobile) using the <code>/user/extension/{ext}</code> endpoint. Below is an example of how to implement this in a Laravel application.</p>
+        
+        <h3>1. Define the Route (<code>routes/web.php</code> or <code>routes/api.php</code>)</h3>
+        <pre><code class="language-php">Route::get('/user/extension/{ext}', [UserController::class, 'getByExtension']);</code></pre>
+        
+        <h3>2. Create the Controller</h3>
+        <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+
+class UserController extends Controller
+{
+    public function getByExtension($ext): JsonResponse
+    {
+        // Find the user by their SIP extension
+        // Assuming your users table has an 'extension' column
+        $user = User::where('extension', $ext)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        // Return the exact data structure expected by the Softphone component
+        return response()->json([
+            'name'          => $user->name,
+            'avatar'        => $user->avatar_url ?? null, // Absolute URL to image
+            'age'           => $user->age ?? null,
+            'address'       => $user->address ?? null,
+            'mobile_number' => $user->mobile_number ?? null,
+            'extension'     => $user->extension,
+        ]);
+    }
+}</code></pre>
+    </section>
+
 </main>
 
 <script>
