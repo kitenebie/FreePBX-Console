@@ -45,14 +45,15 @@ class SSHClient
     public static function generateExtensionFromUser($lastName, $firstName, $middleName, $birthDate): string
     {
         $initials = [
-            strtoupper(substr(trim($lastName),   0, 1)),
-            strtoupper(substr(trim($firstName),  0, 1)),
+            strtoupper(substr(trim($lastName), 0, 1)),
+            strtoupper(substr(trim($firstName), 0, 1)),
             strtoupper(substr(trim($middleName), 0, 1)),
         ];
 
         $acronymNum = '';
         foreach ($initials as $letter) {
-            if ($letter === '') continue;
+            if ($letter === '')
+                continue;
             $pos = ord($letter) - ord('A') + 1; // A=1 … Z=26
             $acronymNum .= str_pad($pos, 2, '0', STR_PAD_LEFT);
         }
@@ -62,7 +63,7 @@ class SSHClient
         // Use mmddyy (6 digits)
         if (strlen($dateDigits) === 8) {
             // yyyymmdd or mmddyyyy — detect by checking if first 4 look like a year
-            if ((int)substr($dateDigits, 0, 4) > 1900) {
+            if ((int) substr($dateDigits, 0, 4) > 1900) {
                 // yyyymmdd → mmddyy
                 $dateDigits = substr($dateDigits, 4, 2) . substr($dateDigits, 6, 2) . substr($dateDigits, 2, 2);
             } else {
@@ -97,9 +98,9 @@ class SSHClient
             return ['status' => 'error', 'extension' => null, 'message' => 'Could not assign extension: missing mobile number'];
         }
 
-        $ext = "0".$user->mobile_number;
+        $ext = $user->mobile_number;
         try {
-            $result = $ssh->createExtensionKsip($ext, $ext, $ext, $dbUser, $dbPass);
+            $result = $ssh->createExtensionKsip($ext, $user->full_name, $ext, $dbUser, $dbPass);
         } catch (\Throwable $e) {
             return ['status' => 'error', 'extension' => $ext, 'message' => $e->getMessage()];
         }
@@ -132,7 +133,7 @@ class SSHClient
         }
 
         // Sanitize inputs
-        $ext      = preg_replace('/[^0-9a-zA-Z]/', '', $ext);
+        $ext = preg_replace('/[^0-9a-zA-Z]/', '', $ext);
         if ($ext === '') {
             throw new \InvalidArgumentException("Extension cannot be empty");
         }
