@@ -1656,31 +1656,33 @@ class UserController extends Controller
     <!-- ========== Caller Information Modal ========== -->
     <section id="sp-caller-modal">
         <h2>Caller Information Modal (For version 1.6.7 and up)</h2>
-        <p>When an incoming call is received and the caller's profile data (name and address) cannot be found via the <code>/user/extension/{ext}</code> endpoint, the softphone automatically displays a <strong>Caller Information Modal</strong> side-by-side with the incoming call modal.</p>
+        <p>When an incoming call is received and the caller's profile data (name and address) cannot be found via the <code>/user/extension/{ext}</code> endpoint, the softphone prepares the <strong>Caller Information Modal</strong> but does not display it immediately. Instead, the modal will automatically display once the user clicks the <strong>Answer</strong> button.</p>
 
         <h3>Trigger Condition</h3>
         <ol>
-            <li>An incoming audio or video call is received.</li>
-            <li>The softphone fetches caller data from <code>/user/extension/{ext}</code>.</li>
-            <li>If <code>name</code> or <code>address</code> is missing (or the endpoint returns 404), the modal appears automatically.</li>
+          <li>An incoming audio or video call is received.</li>
+          <li>The softphone fetches caller data from <code>/user/extension/{ext}</code> and detects it is missing/incomplete.</li>
+          <li>The user clicks the <strong>Answer</strong> button (either audio or video) to accept the call. The Caller Information Modal pops up immediately.</li>
         </ol>
 
         <h3>Behavior (Strict Rules)</h3>
         <ul>
-            <li>📌 <strong>Persists after call ends</strong> — the modal stays open even if the call is rejected, disconnected, or ends. It must be manually submitted or dismissed.</li>
-            <li>↔️ <strong>Side-by-side layout</strong> — renders next to the incoming call modal, not on top of it.</li>
-            <li>🔒 <strong>Mobile number is read-only</strong> — pre-filled from the incoming caller's extension.</li>
+          <li>📌 <strong>Persists after call ends</strong> — the modal stays open even if the call is rejected, disconnected, or ends. It must be manually submitted or dismissed.</li>
+          <li>↔️ <strong>Side-by-side layout</strong> — renders next to the incoming call modal, not on top of it.</li>
+          <li>🔒 <strong>Mobile number is read-only</strong> — pre-filled from the incoming caller's extension.</li>
+          <li>🎛️ <strong>2-Column Grid Layout</strong> — the form fields are arranged in a wide 2-column grid with larger input fields for high readability and ease of input.</li>
+          <li>❌ <strong>Close Button</strong> — a manual close icon (X) is provided in the header to dismiss the modal at any time.</li>
         </ul>
 
         <h3>Form Fields</h3>
         <table>
             <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
             <tbody>
-                <tr><td><code>completeName</code></td><td>Text</td><td>✅ Yes</td><td>Full name of the caller</td></tr>
-                <tr><td><code>completeAddress</code></td><td>Text</td><td>✅ Yes</td><td>Full address of the caller</td></tr>
-                <tr><td><code>mobileNumber</code></td><td>Text (read-only)</td><td>—</td><td>Auto-filled from caller extension</td></tr>
-                <tr><td><code>age</code></td><td>Number</td><td>❌ No</td><td>Optional</td></tr>
-                <tr><td><code>gender</code></td><td>Radio (Male / Female)</td><td>❌ No</td><td>Optional</td></tr>
+                <tr><td><code>completeName</code></td><td>Text</td><td>✅ Yes</td><td>Full name of the caller (Grid Row 1, Col 1)</td></tr>
+                <tr><td><code>mobileNumber</code></td><td>Text (read-only)</td><td>—</td><td>Auto-filled from caller extension (Grid Row 1, Col 2)</td></tr>
+                <tr><td><code>completeAddress</code></td><td>Text</td><td>✅ Yes</td><td>Full address of the caller (Grid Row 2, Spans both columns)</td></tr>
+                <tr><td><code>age</code></td><td>Number</td><td>❌ No</td><td>Optional age (Grid Row 3, Col 1)</td></tr>
+                <tr><td><code>gender</code></td><td>Radio (Male / Female)</td><td>❌ No</td><td>Optional gender selection (Grid Row 3, Col 2)</td></tr>
             </tbody>
         </table>
 
