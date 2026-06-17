@@ -126,11 +126,11 @@ try {
 
     // Execute system reload commands
     exec('fwconsole reload 2>&1', $reloadOutput, $reloadCode);
-    usleep(1000000); // Wait 1 second
+    usleep(15000000); // Wait 15 seconds
     exec('asterisk -rx "module reload res_pjsip.so" 2>&1', $pjsipOutput, $pjsipCode);
-    usleep(500000); // Wait 500ms
+    usleep(15000000); // Wait 15 seconds
     exec('asterisk -rx "pjsip show endpoint ' . escapeshellarg($extension) . '" 2>&1', $endpointOutput);
-
+    usleep(7000000); // Wait 7 seconds
     respond([
         'status'         => 'success',
         'message'        => "Extension {$extension} created successfully for FreePBX 17",

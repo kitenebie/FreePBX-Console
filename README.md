@@ -6,24 +6,37 @@ A PHP library for managing FreePBX/Asterisk PJSIP extensions remotely via SSH.
 
 Direct SQL inserts into `users`, `devices`, `sip`, or the generic `pjsip` table can produce half-created extensions that appear in dialplan but are not fully managed FreePBX endpoints.
 
-This library now expects extension creation to happen through a PBX-side PHP script that bootstraps FreePBX and uses its Core module methods. A starter script is included at [stubs/create_freepbx_extension.php](/Users/kylleluiscabus/FreePBX-Console/stubs/create_freepbx_extension.php).
+This library now expects extension creation to happen through a PBX-side PHP script that bootstraps FreePBX and uses its Core module methods. FreePBX 17.0.28+ compatible scripts are included in the `stubs/` directory.
 
-### Deployment steps
+### FreePBX 17 Deployment (Recommended)
 
-1. Copy the stub to your FreePBX host:
+For FreePBX version 17.0.28 and newer, use the enhanced v17 script:
+
+```bash
+scp stubs/create_freepbx_extension_v17.php root@your-pbx:/var/lib/asterisk/bin/create_freepbx_extension.php
+ssh root@your-pbx "chmod 755 /var/lib/asterisk/bin/create_freepbx_extension.php"
+```
+
+### Legacy FreePBX (Older Versions)
+
+For older FreePBX versions, use the original script:
 
 ```bash
 scp stubs/create_freepbx_extension.php root@your-pbx:/var/lib/asterisk/bin/create_freepbx_extension.php
 ssh root@your-pbx "chmod 755 /var/lib/asterisk/bin/create_freepbx_extension.php"
 ```
 
-2. Verify that the script can load `/etc/freepbx.conf` on the PBX host.
-3. Call `SSHClient::createExtensionKsip()` as usual. It now invokes the PBX-side script instead of raw SQL inserts.
-4. Reload FreePBX after successful creation.
+### What's Different in v17?
 
-### Version note
+- ✅ **Simplified Core API calls** compatible with FreePBX 17.0.28+
+- ✅ **Proper AOR creation** - fixes "Unable to find object" errors
+- ✅ **WebRTC-optimized settings** (DTLS, ICE, Bundle, RTCP-MUX)
+- ✅ **Automatic reload** with detailed output
+- ✅ **Better error handling** and troubleshooting info
 
-The stub uses `FreePBX::Create()->Core->addDevice()` and `addUser()` as the intended integration path, but exact method signatures can vary by FreePBX version. Confirm them on your PBX before production rollout.
+### Auto-deployment
+
+The script is automatically uploaded to your FreePBX server when you run `make:ksip`. Manual deployment is only needed once for initial setup or updates.
 
 ## WEB DOCUMENTATION
 **Visit Documentation:** [php-ksip-telnet & juv-ksip-softphone Documentation](https://kitenebie.github.io/FreePBX-Console/)
@@ -527,6 +540,33 @@ Make sure `config/services.php` has the `freepbx` block:
     'db_pass' => env('SSH_DB_PASS'),
 ],
 ```
+
+### FreePBX 17 Troubleshooting
+
+If you see "Unable to find object" errors after creating extensions:
+
+1. **Verify script deployment:**
+   ```bash
+   ssh root@your-pbx "ls -la /var/lib/asterisk/bin/create_freepbx_extension.php"
+   ```
+
+2. **Check script permissions:**
+   ```bash
+   ssh root@your-pbx "chmod 755 /var/lib/asterisk/bin/create_freepbx_extension.php"
+   ```
+
+3. **Test manual execution:**
+   ```bash
+   ssh root@your-pbx
+   php /var/lib/asterisk/bin/create_freepbx_extension.php "$(echo '{"extension":"test123","name":"Test","password":"test123"}' | base64)"
+   ```
+
+4. **Check FreePBX logs:**
+   ```bash
+   tail -f /var/log/asterisk/full
+   ```
+
+The `make:ksip` command automatically uses the FreePBX 17 compatible script and provides detailed output including reload status and endpoint verification.
 
 ---
 
