@@ -120,17 +120,9 @@ class SSHClient
             throw new \Exception("Not connected to SSH");
         }
 
-        // Always push the latest FreePBX 17 compatible stub to the PBX before executing
-        $localStub = __DIR__ . '/../stubs/create_freepbx_extension_v17.php';
-        if (file_exists($localStub)) {
-            $stubContent = base64_encode(file_get_contents($localStub));
-            $this->ssh->exec(sprintf(
-                'echo %s | base64 -d > %s && chmod 755 %s',
-                escapeshellarg($stubContent),
-                escapeshellarg($remoteScript),
-                escapeshellarg($remoteScript)
-            ));
-        }
+        // The extension creation script should already be deployed to the remote server
+        // at /var/lib/asterisk/bin/create_freepbx_extension.php
+        // We don't auto-deploy anymore since we have a working custom script
 
         // Sanitize inputs
         $ext = preg_replace('/[^0-9a-zA-Z]/', '', $ext);
@@ -141,24 +133,7 @@ class SSHClient
         $payload = [
             'extension' => $ext,
             'name' => $extName,
-            'password' => $password,
-            'tech' => 'pjsip',
-            'settings' => [
-                'dtmfmode' => 'rfc4733',
-                'disallow' => 'all',
-                'allow' => 'ulaw&alaw&vp8&h264',
-                'direct_media' => 'no',
-                'max_contacts' => '1',
-                'rtp_symmetric' => 'yes',
-                'rewrite_contact' => 'yes',
-                'force_rport' => 'yes',
-                'media_encryption' => 'dtls',
-                'webrtc' => 'yes',
-                'icesupport' => 'yes',
-                'avpf' => 'yes',
-                'bundle' => 'yes',
-                'rtcp_mux' => 'yes',
-            ],
+            'password' => $password
         ];
 
         $command = sprintf(
