@@ -59,32 +59,46 @@ try {
 
     // Create extension using FreePBX 17 API
     $deviceData = [
-        'account'     => $extension,
         'tech'        => 'pjsip',
         'dial'        => "PJSIP/{$extension}",
         'devicetype'  => 'fixed',
-        'user'        => $extension,
         'description' => $name,
         'secret'      => $password,
-        'callerid'    => "\"{$name}\" <{$extension}>",
         'context'     => 'from-internal'
     ];
 
     $userData = [
-        'extension'   => $extension,
         'name'        => $name,
         'voicemail'   => 'enabled',
         'ringtimer'   => 0,
         'noanswer'    => 0,
         'recording'   => 'dontcare',
         'outboundcid' => "\"{$name}\" <{$extension}>",
-        'sipname'     => '',
         'mohclass'    => 'default'
     ];
 
-    // Add device and user
-    $core->addDevice($extension, 'pjsip', $deviceData);
-    $core->addUser($extension, $userData);
+    // Use try-catch for each Core method call
+    try {
+        $core->addDevice($extension, 'pjsip', $deviceData, true);
+    } catch (Exception $e) {
+        try {
+            // Try alternative method signature
+            $core->addDevice($extension, $deviceData);
+        } catch (Exception $e2) {
+            throw new RuntimeException("addDevice failed: " . $e->getMessage() . " | Alt: " . $e2->getMessage());
+        }
+    }
+
+    try {
+        $core->addUser($extension, $userData, true);
+    } catch (Exception $e) {
+        try {
+            // Try alternative method signature
+            $core->addUser($extension, $userData);
+        } catch (Exception $e2) {
+            throw new RuntimeException("addUser failed: " . $e->getMessage() . " | Alt: " . $e2->getMessage());
+        }
+    }
 
     // Get database connection
     $db = FreePBX::Database();
