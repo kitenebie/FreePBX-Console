@@ -144,9 +144,6 @@ class SSHClient
 
         $output = trim($this->ssh->exec($command));
 
-        // Debug: log the raw output
-        error_log("Raw SSH output: " . $output);
-
         if ($output === '') {
             throw new \RuntimeException('Remote extension creation script returned no output');
         }
