@@ -64,6 +64,7 @@ class KSIPMake extends Command
             $result = $ssh->createExtensionKsip($ext, $name, $secret, $dbUser, $dbPass);
         } catch (\Exception $e) {
             $this->error('Failed to create extension: ' . $e->getMessage());
+            $this->error('Error in file: ' . $e->getFile() . ' at line: ' . $e->getLine());
             return 1;
         }
 
