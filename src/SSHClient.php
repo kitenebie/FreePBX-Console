@@ -120,8 +120,8 @@ class SSHClient
             throw new \Exception("Not connected to SSH");
         }
 
-        // Always push the latest stub to the PBX before executing
-        $localStub = __DIR__ . '/../stubs/create_freepbx_extension.php';
+        // Always push the latest FreePBX 17 compatible stub to the PBX before executing
+        $localStub = __DIR__ . '/../stubs/create_freepbx_extension_v17.php';
         if (file_exists($localStub)) {
             $stubContent = base64_encode(file_get_contents($localStub));
             $this->ssh->exec(sprintf(

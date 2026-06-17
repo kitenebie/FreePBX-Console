@@ -743,6 +743,66 @@ SSH_DB_PASS=dbpassword</code></pre>
     'db_user' => env('SSH_DB_USER'),
     'db_pass' => env('SSH_DB_PASS'),
 ],</code></pre>
+
+        <h2>FreePBX 17 Deployment Guide</h2>
+        <p>For FreePBX version 17.0.28 and newer, the extension creation script needs to be manually deployed to your FreePBX server for optimal compatibility.</p>
+
+        <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+                <h3>Download the FreePBX 17 Script</h3>
+                <p>The script is automatically included in your project at:</p>
+                <pre><code class="language-bash">stubs/create_freepbx_extension_v17.php</code></pre>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+                <h3>Upload to FreePBX Server</h3>
+                <pre><code class="language-bash">scp stubs/create_freepbx_extension_v17.php root@your-pbx-server:/var/lib/asterisk/bin/create_freepbx_extension.php</code></pre>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+                <h3>Set Executable Permissions</h3>
+                <pre><code class="language-bash">ssh root@your-pbx-server "chmod 755 /var/lib/asterisk/bin/create_freepbx_extension.php"</code></pre>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+                <h3>Test the Installation</h3>
+                <pre><code class="language-bash">php artisan make:ksip --extension="test123" --name="Test User" --secret="test123"</code></pre>
+                <p>Check the output for FreePBX reload and endpoint verification messages.</p>
+            </div>
+        </div>
+
+        <div class="alert">
+            <strong>FreePBX 17 Compatibility:</strong> The v17 script uses simplified Core module calls and direct database updates for better compatibility with newer FreePBX versions. It automatically creates proper AOR records and applies WebRTC-specific PJSIP settings.
+        </div>
+
+        <h3>What the v17 Script Does</h3>
+        <ul>
+            <li>✅ Creates FreePBX device and user records via Core API</li>
+            <li>✅ Applies WebRTC-specific PJSIP settings (DTLS, ICE, Bundle)</li>
+            <li>✅ Creates proper AOR (Address of Record) configuration</li>
+            <li>✅ Triggers FreePBX reload and PJSIP module reload</li>
+            <li>✅ Verifies endpoint creation with <code>pjsip show endpoint</code></li>
+            <li>✅ Returns detailed output for troubleshooting</li>
+        </ul>
+
+        <h3>Troubleshooting</h3>
+        <p>If you see "Unable to find object" after creation:</p>
+        <ol>
+            <li>Check if the script exists: <code>ls -la /var/lib/asterisk/bin/create_freepbx_extension.php</code></li>
+            <li>Verify permissions: <code>ls -la /var/lib/asterisk/bin/</code></li>
+            <li>Test manually: <code>php /var/lib/asterisk/bin/create_freepbx_extension.php [base64-payload]</code></li>
+            <li>Check FreePBX logs: <code>tail -f /var/log/asterisk/full</code></li>
+        </ol>
     </section>
 
     <!-- ksipRegisterUser -->
