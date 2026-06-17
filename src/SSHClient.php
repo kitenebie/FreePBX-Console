@@ -150,17 +150,19 @@ class SSHClient
 
         $result = json_decode($output, true);
         if (!is_array($result)) {
-            throw new \RuntimeException("Remote script did not return valid JSON: {$output}");
+            // Add debugging info
+            throw new \RuntimeException("Remote script did not return valid JSON. Raw output: {$output}");
         }
 
         if (($result['status'] ?? null) !== 'success') {
-            throw new \RuntimeException($result['message'] ?? 'Unknown FreePBX provisioning failure');
+            $message = $result['message'] ?? 'Unknown FreePBX provisioning failure';
+            throw new \RuntimeException($message);
         }
 
         return [
             'script' => $remoteScript,
             'extension' => $ext,
-            'remote_result' => $result,
+            'remote_result' => $result['remote_result'] ?? $result,
         ];
     }
 }
