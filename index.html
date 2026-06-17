@@ -271,6 +271,9 @@
         <a href="#sp-freepbx">FreePBX Requirements</a>
         <a href="#sp-recording">Auto Recording</a>
         <a href="#sp-localstorage">localStorage</a>
+        <a href="#sp-backend">Backend API Example</a>
+        <a href="#sp-logging">[KSIP Log] Console Logging</a>
+        <a href="#sp-caller-modal">Caller Info Modal</a>
     </nav>
 </aside>
 
@@ -1113,6 +1116,8 @@ Browser  ◀──WebRTC──▶   FreePBX/Asterisk  ◀──RTP──▶  Oth
             <li>🔔 Ringtones for incoming and end call</li>
             <li>⏱ Status toast notification with real-time connection state</li>
             <li>⌨️ Keyboard shortcut (Ctrl+Shift+K) to toggle settings</li>
+            <li>🪵 Structured <code>[KSIP Log]</code> console logging for all SIP lifecycle events</li>
+            <li>📋 Caller Information Modal — auto-pops for unknown incoming callers</li>
         </ul>
     </section>
 
@@ -1609,6 +1614,145 @@ class UserController extends Controller
         ]);
     }
 }</code></pre>
+    </section>
+
+    <!-- ========== [KSIP Log] Console Logging ========== -->
+    <section id="sp-logging">
+        <h2>[KSIP Log] Console Logging</h2>
+        <p>Every important SIP lifecycle event emits a structured console log prefixed with <code>[KSIP Log]</code>, making it easy to trace the full connection flow in DevTools without noise from other libraries.</p>
+
+        <h3>Log Categories</h3>
+        <table>
+            <thead><tr><th>Event</th><th>Log Example</th></tr></thead>
+            <tbody>
+                <tr><td>WebSocket connecting</td><td><code>[KSIP Log] Connecting to PBX: ws://192.168.1.100:8088/ws</code></td></tr>
+                <tr><td>UA created</td><td><code>[KSIP Log] UA created for extension 1001</code></td></tr>
+                <tr><td>Registered</td><td><code>[KSIP Log] Registered successfully — extension: 1001</code></td></tr>
+                <tr><td>Registration failed</td><td><code>[KSIP Log] Registration failed: { cause: ... }</code></td></tr>
+                <tr><td>Unregistered</td><td><code>[KSIP Log] Unregistered — cause: { ... }</code></td></tr>
+                <tr><td>WebSocket connected</td><td><code>[KSIP Log] WebSocket connected</code></td></tr>
+                <tr><td>WebSocket disconnected</td><td><code>[KSIP Log] WebSocket disconnected — code: 1006 reason: </code></td></tr>
+                <tr><td>Incoming call</td><td><code>[KSIP Log] Incoming call from: sip:1002@192.168.1.100</code></td></tr>
+                <tr><td>Outgoing call</td><td><code>[KSIP Log] Outgoing call to: 1002</code></td></tr>
+                <tr><td>Call accepted</td><td><code>[KSIP Log] Call accepted</code></td></tr>
+                <tr><td>Call ended</td><td><code>[KSIP Log] Call ended — cause: Normal Clearing</code></td></tr>
+                <tr><td>Call failed</td><td><code>[KSIP Log] Call failed — cause: { ... }</code></td></tr>
+                <tr><td>Media error</td><td><code>[KSIP Log] Media error: NotAllowedError: Permission denied</code></td></tr>
+                <tr><td>UA cleanup</td><td><code>[KSIP Log] UA stopped and cleaned up</code></td></tr>
+            </tbody>
+        </table>
+
+        <h3>Example DevTools Output</h3>
+        <pre><code class="language-bash2">[KSIP Log] Connecting to PBX: ws://192.168.1.100:8088/ws
+[KSIP Log] UA created for extension 1001
+[KSIP Log] WebSocket connected
+[KSIP Log] Registered successfully — extension: 1001
+[KSIP Log] Incoming call from: sip:1002@192.168.1.100
+[KSIP Log] Call ended — cause: Normal Clearing</code></pre>
+
+        <div class="alert">All logs are prefixed with <code>[KSIP Log]</code>. You can filter your DevTools console by this prefix to see only softphone-related events.</div>
+    </section>
+
+    <!-- ========== Caller Information Modal ========== -->
+    <section id="sp-caller-modal">
+        <h2>Caller Information Modal</h2>
+        <p>When an incoming call is received and the caller's profile data (name and address) cannot be found via the <code>/user/extension/{ext}</code> endpoint, the softphone automatically displays a <strong>Caller Information Modal</strong> side-by-side with the incoming call modal.</p>
+
+        <h3>Trigger Condition</h3>
+        <ol>
+            <li>An incoming audio or video call is received.</li>
+            <li>The softphone fetches caller data from <code>/user/extension/{ext}</code>.</li>
+            <li>If <code>name</code> or <code>address</code> is missing (or the endpoint returns 404), the modal appears automatically.</li>
+        </ol>
+
+        <h3>Behavior (Strict Rules)</h3>
+        <ul>
+            <li>📌 <strong>Persists after call ends</strong> — the modal stays open even if the call is rejected, disconnected, or ends. It must be manually submitted or dismissed.</li>
+            <li>↔️ <strong>Side-by-side layout</strong> — renders next to the incoming call modal, not on top of it.</li>
+            <li>🔒 <strong>Mobile number is read-only</strong> — pre-filled from the incoming caller's extension.</li>
+        </ul>
+
+        <h3>Form Fields</h3>
+        <table>
+            <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+            <tbody>
+                <tr><td><code>completeName</code></td><td>Text</td><td>✅ Yes</td><td>Full name of the caller</td></tr>
+                <tr><td><code>completeAddress</code></td><td>Text</td><td>✅ Yes</td><td>Full address of the caller</td></tr>
+                <tr><td><code>mobileNumber</code></td><td>Text (read-only)</td><td>—</td><td>Auto-filled from caller extension</td></tr>
+                <tr><td><code>age</code></td><td>Number</td><td>❌ No</td><td>Optional</td></tr>
+                <tr><td><code>gender</code></td><td>Radio (Male / Female)</td><td>❌ No</td><td>Optional</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Controlling the Modal — <code>ShowUnknwonRegisterModalForm</code> Prop</h3>
+        <p>Use this boolean prop to enable or disable the Caller Information Modal feature globally. When set to <code>false</code>, the modal will never appear regardless of whether the caller is unknown.</p>
+        <table>
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>ShowUnknwonRegisterModalForm</code></td><td>boolean</td><td><code>true</code></td><td>Enable or disable the Caller Information Modal for unknown callers</td></tr>
+            </tbody>
+        </table>
+        <pre><code class="language-jsx">&lt;!-- Enable (default) --&gt;
+&lt;Softphone ShowUnknwonRegisterModalForm={true} /&gt;
+
+&lt;!-- Disable --&gt;
+&lt;Softphone ShowUnknwonRegisterModalForm={false} /&gt;</code></pre>
+
+        <h3>Backend — Register Caller Endpoint</h3>
+        <p>On form submission, the softphone sends a <code>POST</code> request to <code>/ksip/caller/register</code> with the form data as JSON. Implement this endpoint in your backend to save the new caller record.</p>
+
+        <pre><code class="language-php">// routes/api.php  (or routes/web.php)
+Route::post('/ksip/caller/register', [KsipCallerController::class, 'register']);</code></pre>
+
+        <h3>Example Controller</h3>
+        <pre><code class="language-php">&lt;?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+
+class KsipCallerController extends Controller
+{
+    public function register(Request $request): JsonResponse
+    {
+        $request-&gt;validate([
+            'completeName'    =&gt; 'required|string|max:255',
+            'completeAddress' =&gt; 'required|string|max:500',
+            'mobileNumber'    =&gt; 'required|string',
+            'age'             =&gt; 'nullable|integer|min:1|max:120',
+            'gender'          =&gt; 'nullable|in:Male,Female',
+        ]);
+
+        // Example: save or update the caller record
+        $caller = User::updateOrCreate(
+            ['mobile_number' =&gt; $request-&gt;mobileNumber],
+            [
+                'name'    =&gt; $request-&gt;completeName,
+                'address' =&gt; $request-&gt;completeAddress,
+                'age'     =&gt; $request-&gt;age,
+                'gender'  =&gt; $request-&gt;gender,
+            ]
+        );
+
+        return response()-&gt;json([
+            'message' =&gt; 'Caller registered successfully.',
+            'data'    =&gt; $caller,
+        ], 201);
+    }
+}</code></pre>
+
+        <h3>Request Payload (sent by Softphone)</h3>
+        <pre><code class="language-json">{
+  "completeName":    "Juan Luna",
+  "completeAddress": "123 Rizal Street, Manila",
+  "mobileNumber":    "1001",
+  "age":             30,
+  "gender":          "Male"
+}</code></pre>
+
+        <div class="alert"><strong>Important:</strong> The modal does <em>not</em> close if the call ends or is rejected. It remains on-screen until the user submits the form. This ensures no caller data is lost even on short or missed calls.</div>
     </section>
 
 </main>
