@@ -69,12 +69,28 @@ class KSIPMake extends Command
 
         $this->info("Extension <comment>{$ext}</comment> created successfully.");
 
-        if (!empty($result['sql_output'])) {
-            $this->line('<fg=yellow>SQL output:</> ' . $result['sql_output']);
-        }
-
-        if (!empty($result['reload_output'])) {
-            $this->line('<fg=cyan>Reload output:</> ' . $result['reload_output']);
+        // Display remote script output
+        if (!empty($result['remote_result'])) {
+            $remote = $result['remote_result'];
+            
+            if (!empty($remote['message'])) {
+                $this->line('<fg=green>Message:</> ' . $remote['message']);
+            }
+            
+            if (!empty($remote['reload_output'])) {
+                $this->line('<fg=cyan>FreePBX Reload:</>');
+                $this->line($remote['reload_output']);
+            }
+            
+            if (!empty($remote['pjsip_output'])) {
+                $this->line('<fg=cyan>PJSIP Reload:</>');
+                $this->line($remote['pjsip_output']);
+            }
+            
+            if (!empty($remote['endpoint_check'])) {
+                $this->line('<fg=magenta>Endpoint Verification:</>');
+                $this->line($remote['endpoint_check']);
+            }
         }
 
         return 0;
